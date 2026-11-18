@@ -1,7 +1,7 @@
 import { Runner } from "./runner.js";
 import { Renderer, turtlesAt } from "./renderer.js";
 import { createEditor } from "./editor.js";
-import { Stepper, framesHTML, chipsHTML } from "./debugger.js";
+import { Stepper, varsHTML, chipsHTML, lookupVar, typeOf } from "./debugger.js";
 import { kidError } from "./errors.js";
 
 const $ = (id) => document.getElementById(id);
@@ -14,6 +14,14 @@ const PLAY_ICON = "M8 5v14l11-7z";
 const PAUSE_ICON = "M7 5h4v14H7zM13 5h4v14h-4z";
 
 const editor = await createEditor($("editor"), STARTER);
+
+// Variables dropdown in the toolbar. Made here, not in index.html (card-10 owns that file now).
+$("frames")?.closest(".panel")?.remove();
+$("bExplain").insertAdjacentHTML("beforebegin",
+  '<button id="bVars" class="varsbtn" title="Variables" aria-expanded="false"><span class="xeq">x=</span><span class="cnt" id="varCount">0</span>' +
+  '<svg viewBox="0 0 24 24"><path d="M5 8l7 8 7-8z" fill="currentColor"/></svg></button>');
+document.querySelector(".codepanel").insertAdjacentHTML("beforeend", '<div class="varspop" id="varsPop" hidden></div>');
+document.querySelector(".codepanel").style.position = "relative";
 const renderer = new Renderer($("cv"));
 
 let stepper = null;     // recording of the current code, or null after an edit
@@ -21,6 +29,7 @@ let recording = null;   // promise while Python runs
 let timer = null;
 let explain = true;
 let prevBoxes = {};
+let currentFrames = [];
 let pythonReady = false;
 
 const runner = new Runner((s, msg) => {
@@ -51,7 +60,8 @@ function forget() {
   showError(null);
   $("warn").hidden = true;
   renderer.draw([], 0);
-  $("frames").innerHTML = '<span class="empty">no boxes yet</span>';
+  $("varsPop").innerHTML = '<span class="empty">no variables yet</span>';
+  $("varCount").textContent = "0";
   $("turtles").innerHTML = "";
   $("outBox").hidden = true;
   updateButtons();
@@ -82,9 +92,12 @@ function render() {
     active: made ? made.after.t : undefined,
     turn: made && made.op === "turn" ? made : null,
   });
-  const boxes = framesHTML(v.frames, v.pos < 0 ? {} : prevBoxes);
-  $("frames").innerHTML = boxes.html;
-  prevBoxes = boxes.now;
+  const vars = varsHTML(v.frames, v.pos < 0 ? {} : prevBoxes);
+  $("varsPop").innerHTML = vars.html;
+  $("varCount").textContent = vars.count;
+  if (vars.changed) { $("bVars").classList.remove("pulse"); void $("bVars").offsetWidth; $("bVars").classList.add("pulse"); }
+  prevBoxes = vars.now;
+  currentFrames = v.frames;
   $("turtles").innerHTML = chipsHTML(turtlesAt(cmds, Math.max(v.cmdN, 1)), made ? made.after.t : -1);
   $("out").textContent = v.out;
   $("outBox").hidden = !v.out;
@@ -150,7 +163,23 @@ $("bExplain").onclick = (e) => {
   render();
 };
 
-editor.onChange(forget);
+editor.onChange(() => { currentFrames = []; forget(); });
+
+function toggleVars(open = $("varsPop").hidden) {
+  $("varsPop").hidden = !open;
+  $("bVars").setAttribute("aria-expanded", open);
+}
+$("bVars").onclick = () => toggleVars();
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleVars(false); });
+
+// Hover a name in the code: its type and its value at this step.
+editor.setVarLookup((name) => {
+  const hit = lookupVar(currentFrames, name);
+  if (!hit) return null;
+  const [, tag, words] = typeOf(hit.v);
+  const val = hit.v.type === "function" ? "" : `\n\nNow it holds \`${hit.v.repr ?? hit.v.type}\`.`;
+  return `\`${name}\` is ${words} (\`${tag}\`)` + (hit.where !== "main program" ? ` in ${hit.where}` : "") + "." + val;
+});
 editor.onStopsChange = updateButtons;
 
 document.addEventListener("keydown", (e) => {

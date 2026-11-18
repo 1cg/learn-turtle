@@ -76,3 +76,23 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
   main { grid-template-columns: 1fr; padding: 16px; }
   #cv { width: 100%; height: auto; aspect-ratio: 1; }
 }
+/* variables dropdown */
+.controls .varsbtn { width: auto; padding: 0 8px; gap: 4px; font: 600 14px ui-monospace, monospace; }
+.varsbtn svg { width: 10px !important; height: 10px !important; }
+.varsbtn .cnt { font: 600 11px system-ui; background: #8bb8e8; color: #fff; border-radius: 99px; padding: 0 6px; }
+.varsbtn[aria-expanded="true"] { background: #eef6ff; border-color: #8bb8e8; }
+.varsbtn.pulse { animation: flash 0.9s; }
+.varspop { position: absolute; right: 60px; top: 42px; z-index: 20; background: #fff; border: 1px solid #c9c4b6; border-radius: 10px; box-shadow: 0 6px 20px #0002; padding: 8px 10px; min-width: 260px; max-width: calc(100% - 80px); max-height: 60%; overflow: auto; }
+.varspop[hidden] { display: none; }
+.vp-head { font: 600 12px system-ui; color: #7c4dff; margin: 4px 0; }
+.vp-head small { color: var(--muted); font-weight: 400; }
+.vp-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.vchip { display: inline-flex; align-items: baseline; gap: 5px; border: 1px solid; border-radius: 99px; padding: 2px 9px; font: 14px ui-monospace, monospace; max-width: 100%; overflow-wrap: anywhere; }
+.vchip b { font-weight: 700; }
+.vchip i { font: 10px system-ui; font-style: normal; opacity: .7; }
+.vchip.num { border-color: #8bb8e8; background: #eef6ff; }
+.vchip.str { border-color: #8fcf9f; background: #ecf8ef; }
+.vchip.list { border-color: #f0b27a; background: #fff4e8; }
+.vchip.bool { border-color: #b9a2f0; background: #f3efff; }
+.vchip.fn { border-color: #c9c4b6; background: #f6f4ee; }
+.vchip.changed { animation: flash 0.9s; }

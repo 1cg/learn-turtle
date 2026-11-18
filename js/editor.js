@@ -46,6 +46,7 @@ function docMarkdown(f) {
 }
 
 let providersReady = false;
+let varLookup = () => null; // set by the app: name -> markdown or null
 function registerProviders(monaco) {
   if (providersReady) return;
   providersReady = true;
@@ -122,8 +123,12 @@ function registerProviders(monaco) {
   monaco.languages.registerHoverProvider("python", {
     provideHover(model, pos) {
       const w = model.getWordAtPosition(pos);
-      const f = w && API_BY_NAME[w.word];
-      if (!f) return null;
+      if (!w) return null;
+      const f = API_BY_NAME[w.word];
+      if (!f) {
+        const text = varLookup(w.word);
+        return text ? { range: new monaco.Range(pos.lineNumber, w.startColumn, pos.lineNumber, w.endColumn), contents: [{ value: text }] } : null;
+      }
       const contents = [docMarkdown(f)];
       // A picture when the call on this line has number values, for example left(90).
       for (const m of model.getLineContent(pos.lineNumber).matchAll(/(\w+)\s*\(([^()]*)\)/g)) {
@@ -214,6 +219,7 @@ export async function createEditor(el, value) {
       if (line) ed.revealLineInCenterIfOutsideViewport(line);
     },
     clearError() { monaco.editor.setModelMarkers(model, "run", []); },
+    setVarLookup(fn) { varLookup = fn; },
   };
   return api;
 }

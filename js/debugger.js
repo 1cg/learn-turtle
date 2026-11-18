@@ -74,28 +74,64 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 function shown(v) {
   if (v.type === "function") return "function";
+  if (v.type === "list" && v.repr == null && v.items) return "[" + v.items.map((x) => x.repr ?? x.type).join(", ") + (v.len > v.items.length ? ", ..." : "") + "]";
   if (v.type === "Turtle") return "Turtle";
   return v.repr ?? v.type;
 }
 
-// Variables as labeled boxes, one group for each running function.
-export function framesHTML(frames, prev) {
+// ---- variables ----
+
+// Type of a recorded value: color class, short tag, and words for a child.
+export const TYPES = {
+  int: ["num", "int", "a whole number"],
+  float: ["num", "float", "a number with a point"],
+  str: ["str", "str", "text"],
+  bool: ["bool", "bool", "True or False"],
+  list: ["list", "list", "a list"],
+  tuple: ["list", "tuple", "a pair or group of values"],
+  dict: ["list", "dict", "a dictionary"],
+  function: ["fn", "function", "a function you made"],
+  Turtle: ["fn", "Turtle", "a turtle"],
+  NoneType: ["fn", "None", "nothing (None)"],
+};
+export const typeOf = (v) => TYPES[v.type] || ["fn", v.type, "a " + v.type];
+
+// Frames from the innermost function out to the main program.
+function ordered(frames) {
+  return frames.map((f, i) => ({ ...f, caller: i > 0 ? frames[i - 1].line : 0 })).reverse();
+}
+
+// Look up a name the way Python does here: this function first, then the main program.
+export function lookupVar(frames, name) {
+  if (!frames.length) return null;
+  const top = frames[frames.length - 1];
+  if (name in top.vars) return { v: top.vars[name], where: top.name };
+  if (name in frames[0].vars) return { v: frames[0].vars[name], where: frames[0].name };
+  return null;
+}
+
+// Chips for the variables dropdown. prev: last values, to mark changes.
+export function varsHTML(frames, prev) {
   const now = {};
-  if (!frames.length) return { html: '<span class="empty">no boxes yet</span>', now };
-  const html = frames.map((f, fi) => {
+  let count = 0, changed = false;
+  const groups = ordered(frames).map((f) => {
     const names = Object.keys(f.vars);
-    const boxes = names.length ? names.map((k) => {
-      const id = fi + ":" + f.name + ":" + k;
-      const val = shown(f.vars[k]);
+    count += names.length;
+    const chips = names.map((k) => {
+      const v = f.vars[k];
+      const [cls, tag] = typeOf(v);
+      const val = shown(v);
+      const id = f.name + ":" + k;
       now[id] = val;
-      const changed = prev[id] !== val;
-      return `<div class="box${changed ? " changed" : ""}"><div class="label">${esc(k)}</div><div class="val">${esc(val)}</div></div>`;
-    }).join("") : '<span class="empty">no boxes yet</span>';
-    const top = fi === frames.length - 1 && fi > 0;
-    const sub = fi > 0 ? ` <small>called from line ${frames[fi - 1].line}</small>` : "";
-    return `<div class="frame${top ? " top" : ""}"><div class="fname">${esc(f.name)}${sub}</div><div class="boxes">${boxes}</div></div>`;
-  }).join("");
-  return { html, now };
+      const ch = id in prev && prev[id] !== val || !(id in prev) && Object.keys(prev).length > 0;
+      if (ch) changed = true;
+      const value = v.type === "function" ? "" : ` <b>${esc(val)}</b>`;
+      return `<span class="vchip ${cls}${ch ? " changed" : ""}" title="${esc(k)} is ${esc(typeOf(v)[2])}">${esc(k)}${value} <i>${esc(tag)}</i></span>`;
+    }).join("") || '<span class="empty">no variables yet</span>';
+    const head = f.caller ? `in ${esc(f.name)} <small>(called from line ${f.caller})</small>` : esc(f.name);
+    return `<div class="vp-head">${head}</div><div class="vp-row">${chips}</div>`;
+  });
+  return { html: groups.join("") || '<span class="empty">no variables yet</span>', now, count, changed };
 }
 
 const fmt = (v) => Math.round(v * 10) / 10;
