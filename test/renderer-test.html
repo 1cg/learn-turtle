@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Renderer test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}canvas{border:1px solid #ccc;width:200px;height:200px;margin:4px}</style>
+</head>
+<body>
+<h1>Renderer test</h1>
+<div id="log">loading Python...</div>
+<div id="cvs"></div>
+<script type="module">
+import { Runner } from "../js/runner.js";
+import { Renderer, SIZE } from "../js/renderer.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+
+// Pixel color at world point (x, y) as [r, g, b].
+function px(r, x, y) {
+  const d = r.dpr;
+  const p = r.g.getImageData(Math.round((x + SIZE / 2) * d), Math.round((SIZE / 2 - y) * d), 1, 1).data;
+  return [p[0], p[1], p[2]];
+}
+const white = (c) => c.every((v) => v > 240);
+const red = (c) => c[0] > 200 && c[1] < 60 && c[2] < 60;
+const dark = (c) => c.every((v) => v < 100);
+
+const H = "hideturtle()\n";
+const cases = [
+  { name: "square line", code: H + "for i in range(4):\n    forward(100)\n    left(90)\n",
+    check: (r) => dark(px(r, 50, 0)) && dark(px(r, 100, 50)) && white(px(r, 50, 50)) },
+  { name: "penup makes no line", code: H + "penup()\nforward(100)\n", check: (r) => white(px(r, 50, 0)) },
+  { name: "red fill", code: H + "color('red')\nbegin_fill()\nfor i in range(4):\n    forward(100)\n    left(90)\nend_fill()\n",
+    check: (r) => red(px(r, 50, 50)) },
+  { name: "circle top", code: H + "circle(50)\n", check: (r) => dark(px(r, 0, 100)) && white(px(r, 0, 50)) },
+  { name: "dot", code: H + "penup()\ngoto(-100, -100)\ndot(20, 'red')\n", check: (r) => red(px(r, -100, -100)) },
+  { name: "clear", code: H + "forward(100)\nclear()\n", check: (r) => white(px(r, 50, 0)) },
+  { name: "two turtles", code: "bob = Turtle()\nbob.hideturtle()\nhideturtle()\nbob.left(90)\nbob.forward(100)\nforward(100)\n",
+    check: (r) => dark(px(r, 0, 50)) && dark(px(r, 50, 0)) },
+  { name: "bgcolor", code: H + "bgcolor('red')\n", check: (r) => red(px(r, -150, 150)) },
+];
+
+const runner = new Runner(() => {});
+let pass = 0;
+log.textContent = "";
+for (const c of cases) {
+  const rec = await runner.run(c.code);
+  const cv = document.createElement("canvas");
+  document.getElementById("cvs").append(cv);
+  const r = new Renderer(cv);
+  r.grid = false;
+  r.draw(rec.cmds, rec.cmds.length);
+  const ok = !rec.error && !!c.check(r);
+  if (ok) pass++; else console.error("FAIL", c.name, JSON.stringify(rec.error));
+  say(`${ok ? "PASS" : "FAIL"} ${c.name}`, ok);
+}
+say(`${pass}/${cases.length} pass`, pass === cases.length);
+console.warn(`SUMMARY ${pass}/${cases.length} pass`);
+</script>
+</body>
+</html>
