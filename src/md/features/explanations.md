@@ -21,7 +21,16 @@ The text shows as a gray italic comment at the end of the line that just ran.
 
 Turtle call, assignment (new, changed, same), `Turtle()`, call and jump into a function, return and "done", `def`, `for`, `while`, `if` / `elif` / `else`, `print`, `pass`, `break`, `continue`.
 
+## Errors
+
+- `js/errors.js` turns a Python error into one short sentence for a child. The raw Python error shows under it in small text, so the child also learns the real words.
+- A name typo gets "Did you mean ...?" from the turtle commands, Python words and the names in the code.
+- The tracer removes the "(<kid>, line N)" part of Python messages.
+
+## Hover pictures
+
+- `js/diagrams.js` draws a small SVG for a turtle call with number values, for example the turn arc for `left(90)`. The editor hover shows it under the help text.
+
 ## Not done yet
 
-- Kid text for errors (for example "foward is not a command. Did you mean forward?").
 - Hand-written text from a lesson for one line. The template text replaces it when the child edits that line.

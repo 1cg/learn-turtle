@@ -33,7 +33,11 @@ button svg { width: 20px; height: 20px; }
 .speed { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 label.check { display: flex; align-items: center; gap: 6px; color: var(--muted); }
 .error { padding: 12px 16px; background: var(--bad-bg); color: var(--bad); border-color: #f5c2bf; }
-.error[hidden], .out[hidden] { display: none; }
+.error[hidden], .out[hidden], .warn[hidden] { display: none; }
+#errText { font-size: 17px; font-weight: 600; }
+.error .raw { margin-top: 4px; font: 13px ui-monospace, monospace; color: #8a2a22; opacity: .8; }
+.warn { padding: 12px 16px; background: #fff7e0; color: #7a5300; border-color: #f0d48a; }
+.warn code { font: 14px ui-monospace, monospace; }
 .out { padding: 10px 16px; font: 15px/1.5 ui-monospace, monospace; white-space: pre-wrap; max-height: 200px; overflow: auto; }
 .out h2 { font: 600 13px system-ui; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 4px; }
 /* debugger toolbar */

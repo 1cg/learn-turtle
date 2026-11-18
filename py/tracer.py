@@ -1,6 +1,7 @@
 """Run kid code and record each step for the replay debugger."""
 import io
 import json
+import re
 import sys
 import traceback
 
@@ -69,7 +70,8 @@ def _error(exc, kind=None):
         for fs in traceback.extract_tb(exc.__traceback__):
             if fs.filename == KID:
                 line = fs.lineno
-    return {"type": kind or type(exc).__name__, "msg": str(exc), "line": line}
+    msg = re.sub(r" \(<kid>, line \d+\)$", "", str(exc))
+    return {"type": kind or type(exc).__name__, "msg": msg, "line": line}
 
 
 def run(code):
@@ -101,7 +103,7 @@ def run(code):
     try:
         compiled = compile(code, KID, "exec")
     except SyntaxError as e:
-        return json.dumps({"steps": [], "cmds": [], "out": "", "error": _error(e)})
+        return json.dumps({"steps": [], "cmds": [], "out": "", "error": _error(e), "warnings": []})
 
     old_out = sys.stdout
     sys.stdout = out
@@ -124,5 +126,6 @@ def run(code):
         texts = [None] * len(steps)
     for step, text in zip(steps, texts):
         step["say"] = text
+    warnings = ["mix"] if {"global", "object"} <= _t._style else []
     return json.dumps({"steps": steps, "cmds": _t._cmds, "out": out.getvalue(),
-                       "error": error})
+                       "error": error, "warnings": warnings})

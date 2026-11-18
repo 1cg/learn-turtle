@@ -2,6 +2,7 @@ import { Runner } from "./runner.js";
 import { Renderer, turtlesAt } from "./renderer.js";
 import { createEditor } from "./editor.js";
 import { Stepper, framesHTML, chipsHTML } from "./debugger.js";
+import { kidError } from "./errors.js";
 
 const $ = (id) => document.getElementById(id);
 const STARTER = `# Draw a square
@@ -48,6 +49,7 @@ function forget() {
   editor.clearLines();
   editor.clearError();
   showError(null);
+  $("warn").hidden = true;
   renderer.draw([], 0);
   $("frames").innerHTML = '<span class="empty">no boxes yet</span>';
   $("turtles").innerHTML = "";
@@ -60,9 +62,12 @@ function showError(err) {
   const box = $("error");
   editor.clearError();
   if (!err) { box.hidden = true; return; }
+  const names = [...new Set(editor.getValue().match(/[A-Za-z_]\w*/g) || [])];
+  const k = kidError(err, names);
   box.hidden = false;
-  box.textContent = (err.line ? `Line ${err.line}: ` : "") + `${err.type}: ${err.msg}`;
-  if (err.line) editor.showError(err.line, err.msg);
+  $("errText").textContent = (err.line ? `Line ${err.line}: ` : "") + k.text;
+  $("errRaw").textContent = k.raw;
+  if (err.line) editor.showError(err.line, k.text);
 }
 
 function render() {
@@ -85,6 +90,7 @@ function render() {
   $("outBox").hidden = !v.out;
   // A syntax error has no steps: show it at once.
   showError(v.error || (stepper.steps.length === 0 ? stepper.rec.error : null));
+  $("warn").hidden = !(stepper.rec.warnings || []).includes("mix");
   updateButtons();
 }
 

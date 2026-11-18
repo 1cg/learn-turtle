@@ -1,6 +1,7 @@
 // Monaco editor setup: kid settings, completion, parameter hints, hover help,
 // breakpoints (stop signs), and line marks for the debugger.
 import { TURTLE_API, GLOBAL_ONLY, PY_BUILTINS, PY_SNIPPETS, PY_KEYWORDS, API_BY_NAME } from "./turtle-api.js";
+import { diagram } from "./diagrams.js";
 
 const MONACO = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min";
 const GHOST_MAX = 70;
@@ -123,7 +124,15 @@ function registerProviders(monaco) {
       const w = model.getWordAtPosition(pos);
       const f = w && API_BY_NAME[w.word];
       if (!f) return null;
-      return { range: new monaco.Range(pos.lineNumber, w.startColumn, pos.lineNumber, w.endColumn), contents: [docMarkdown(f)] };
+      const contents = [docMarkdown(f)];
+      // A picture when the call on this line has number values, for example left(90).
+      for (const m of model.getLineContent(pos.lineNumber).matchAll(/(\w+)\s*\(([^()]*)\)/g)) {
+        if (m[1] !== w.word || m.index + 1 !== w.startColumn) continue;
+        const nums = m[2].split(",").map((s) => (/^\s*-?\d+(\.\d+)?\s*$/.test(s) ? parseFloat(s) : undefined));
+        const svg = diagram(w.word, nums);
+        if (svg) contents.push({ value: `![picture of ${w.word}](data:image/svg+xml;base64,${btoa(svg)})` });
+      }
+      return { range: new monaco.Range(pos.lineNumber, w.startColumn, pos.lineNumber, w.endColumn), contents };
     },
   });
 }

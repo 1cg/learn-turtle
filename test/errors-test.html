@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Errors test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}img{border:1px solid #ccc;margin:4px}</style>
+</head>
+<body>
+<h1>Errors test</h1>
+<div id="log">loading Python...</div>
+<div id="pics"></div>
+<script type="module">
+import { Runner } from "../js/runner.js";
+import { kidError } from "../js/errors.js";
+import { diagram } from "../js/diagrams.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+const runner = new Runner(() => {});
+
+// [code, part of the kid text that must show]
+const cases = [
+  ["foward(10)\n", 'Did you mean "forward"?'],
+  ["Forward(10)\n", 'Did you mean "forward"?'],
+  ["size = 5\nforward(sise)\n", 'Did you mean "size"?'],
+  ["for i in range(3)\n    pass\n", "colon"],
+  ["forward(10\n", "Every ( needs a )"],
+  ["color(\"red)\n", "same quote mark"],
+  ["goto(10 20)\n", "comma"],
+  ["x = 1\nif x = 3:\n    pass\n", "=="],
+  ["for i in range(3):\nforward(1)\n", "4 spaces"],
+  ["forward(1)\n  left(2)\n", "must not"],
+  ["def f(a):\n    pass\nf()\n", "f needs a value"],
+  ["def f():\n    pass\nf(1)\n", "takes 0 values"],
+  ["forward('a')\n", "Numbers have no quote marks"],
+  ["x = 'a' + 1\n", "str(n)"],
+  ["while True:\n    pass\n", "loop never ends"],
+  ["bob = Turtle()\nbob.foward(1)\n", 'Did you mean "forward"?'],
+];
+
+let pass = 0, total = 0;
+log.textContent = "";
+for (const [code, want] of cases) {
+  total++;
+  const rec = await runner.run(code);
+  const names = [...new Set(code.match(/[A-Za-z_]\w*/g) || [])];
+  const k = rec.error ? kidError(rec.error, names) : { text: "(no error)" };
+  const ok = k.text.includes(want);
+  if (ok) pass++; else console.error("FAIL", code, k.text);
+  say(`${ok ? "PASS" : "FAIL"} ${JSON.stringify(code)} -> ${k.text}`, ok);
+}
+const mix = await runner.run("bob = Turtle()\nbob.forward(1)\nforward(1)\n");
+const pure = await runner.run("bob = Turtle()\nbob.forward(1)\n");
+total++;
+const mixOk = mix.warnings.includes("mix") && pure.warnings.length === 0;
+if (mixOk) pass++;
+say(`${mixOk ? "PASS" : "FAIL"} mix warning`, mixOk);
+for (const [n, a] of [["left", [90]], ["right", [45]], ["forward", [50]], ["backward", [30]], ["circle", [40]], ["circle", [-30, 180]], ["setheading", [135]], ["goto", [100, -50]]]) {
+  total++;
+  const svg = diagram(n, a);
+  const ok = svg.startsWith("<svg") && !/NaN/.test(svg);
+  if (ok) pass++;
+  const img = document.createElement("img");
+  img.src = "data:image/svg+xml;base64," + btoa(svg);
+  img.title = `${n}(${a.join(", ")})`;
+  document.getElementById("pics").append(img);
+  say(`${ok ? "PASS" : "FAIL"} diagram ${n}(${a.join(", ")})`, ok);
+}
+say(`${pass}/${total} pass`, pass === total);
+console.warn(`SUMMARY ${pass}/${total} pass`);
+</script>
+</body>
+</html>

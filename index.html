@@ -39,7 +39,8 @@
       <canvas id="cv"></canvas>
       <div class="canvasbar"><span class="coords" id="coords"></span><label class="check"><input id="grid" type="checkbox" checked> Grid</label></div>
     </div>
-    <div class="panel error" id="error" hidden></div>
+    <div class="panel error" id="error" hidden><div id="errText"></div><div class="raw" id="errRaw"></div></div>
+    <div class="panel warn" id="warn" hidden>This program uses <code>forward()</code> and also <code>name.forward()</code>. Pick one style. To use many turtles, say which turtle moves: <code>tracy.forward(50)</code>.</div>
     <div class="panel">
       <h2>Boxes (variables)</h2>
       <div class="frames" id="frames"></div>

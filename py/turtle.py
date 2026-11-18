@@ -50,6 +50,8 @@ class Turtle:
         self._width = 1
         self._visible = True
         self._fillpts = None
+        if _turtles[0] is not self:
+            _style.add("object")
         self._emit("new")
 
     # ---- recording ----
@@ -283,14 +285,27 @@ _EXPORTS = ["forward", "fd", "backward", "back", "bk", "left", "lt", "right", "r
             "xcor", "ycor", "heading", "isdown", "distance"]
 
 
+_style = set()  # "global" and/or "object": which call style the program uses
+
+
+def _global(method):
+    def call(*args, **kwargs):
+        _style.add("global")
+        return method(*args, **kwargs)
+    call.__name__ = method.__name__
+    call.__doc__ = method.__doc__
+    return call
+
+
 def _reset():
     global _default
     _cmds.clear()
     _turtles.clear()
     _default = Turtle()
+    _style.clear()
     g = globals()
     for name in _EXPORTS:
-        g[name] = getattr(_default, name)
+        g[name] = _global(getattr(_default, name))
 
 
 _reset()

@@ -7,7 +7,7 @@
 - Follow the CodeHS "Tracy" API: canvas 400 x 400, origin at the center, y up, heading 0 is east.
 - The code of the child gets `from turtle import *` before it runs, so `forward(50)` works with no import.
 - `Turtle()` makes more turtles. Each command records the id of its turtle.
-- One program must not mix global calls (`forward`) and object calls (`bob.forward`). The human dislikes this mix in standard turtle. The site will show a warning for a mix (not built yet).
+- One program must not mix global calls (`forward`) and object calls (`bob.forward`). The human dislikes this mix in standard turtle. The global functions are wrappers that mark the "global" style, and `Turtle()` marks the "object" style. If a run has both, the result has `warnings: ["mix"]` and the page shows a warning.
 - `speed()` has no effect. The speed menu controls play speed.
 - `input()` does not work yet.
 
