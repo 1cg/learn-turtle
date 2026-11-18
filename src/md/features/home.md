@@ -14,6 +14,7 @@ The home page is the first page. It shows when the URL has no hash or `#home`.
 
 - The map replaces the progress dots. The human said dots are too abstract: a child does not see that they are lessons.
 - The picture on a tile tells the child "you will draw this". It comes from running the last `solution` of the lesson, so it is always true.
+- The tile pictures come from a snapshot, `lessons/thumbs.json`, so the map draws at once with no Python. `python3 tools/make_thumbs.py` writes it from the last `solution` of each lesson. Each entry keeps its solution code. If the code in `lessons.js` is different, the page runs Python for that tile. `test/test_lessons.py` fails if the snapshot is out of date.
 - The text is in the voice of the human's writing (hypermedia.systems), simpler for grade school and high school: "we" and "you", short sentences, a dry joke, one word in italics. The human writes the final text.
 
 ## Progress link

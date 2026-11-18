@@ -119,8 +119,20 @@ def check_all(lessons):
     return errs
 
 
+def check_thumbs():
+    """lessons/thumbs.json must equal a fresh run of tools/make_thumbs.py."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import make_thumbs
+    if open(make_thumbs.OUT).read() != make_thumbs.build():
+        return ["lessons/thumbs.json is out of date: run python3 tools/make_thumbs.py"]
+    return []
+
+
 def main():
     failed = False
+    for e in check_thumbs():
+        print("FAIL", e)
+        failed = True
     for label, path in [("lessons", os.path.join(ROOT, "lessons", "lessons.js")),
                         ("fixture", os.path.join(ROOT, "test", "lessons-fixture.js"))]:
         lessons = load(path)

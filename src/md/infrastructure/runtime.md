@@ -6,6 +6,9 @@
 - The worker writes `turtle.py`, `explain.py` and `tracer.py` into the Pyodide file system and imports `tracer`.
 - `js/runner.js` gives a promise API. Stop and the 15 s timeout kill the worker and start a new one.
 - 0.29.5 is used because the newer 314.x line is not known well yet.
+- The page starts the worker first, before it loads Monaco. Python loads in the background on every page, also on the home page, so it is ready when the child opens a lesson.
+- Until Python is ready, the run buttons are off, the Next button says "Loading Python...", and the canvas is dim.
+- First load, cold cache, measured on learnturtle.org (card-27): see the card for the numbers.
 
 ## Recording
 

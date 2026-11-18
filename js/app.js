@@ -14,7 +14,16 @@ for i in range(4):
 const PLAY_ICON = "M8 5v14l11-7z";
 const PAUSE_ICON = "M7 5h4v14H7zM13 5h4v14h-4z";
 
-const editor = await createEditor($("editor"), STARTER);
+
+// Start Python first: it loads in the background while Monaco loads (src/md/infrastructure/runtime.md).
+let editor = null;
+let pythonReady = false;
+const runner = new Runner((s, msg) => {
+  pythonReady = s === "ready" || s === "running";
+  $("status").textContent = { loading: "Loading Python...", ready: "Ready", running: "Running...", error: "Python failed to load: " + msg }[s] || s;
+  if (editor) updateButtons();
+});
+editor = await createEditor($("editor"), STARTER);
 
 const renderer = new Renderer($("cv"));
 
@@ -26,13 +35,7 @@ let prevBoxes = {};
 let currentFrames = [];
 let lessonHook = () => {};
 let lessonNext = () => null; // the way forward at the end of a run: { label, go } or null
-let pythonReady = false;
 
-const runner = new Runner((s, msg) => {
-  pythonReady = s === "ready" || s === "running";
-  $("status").textContent = { loading: "Loading Python...", ready: "Ready", running: "Running...", error: "Python failed to load: " + msg }[s] || s;
-  updateButtons();
-});
 
 // ---- recording ----
 async function ensureRecording() {
@@ -117,7 +120,9 @@ function updateButtons() {
   // At the end of a run, Next becomes the way forward (Your turn, Next: Do, Next lesson).
   const fwd = atEnd ? lessonNext(stepper) : null;
   $("bNext").disabled = !pythonReady || (atEnd && !fwd);
-  $("bNext").lastChild.textContent = fwd ? fwd.label : "Next";
+  $("bNext").lastChild.textContent = fwd ? fwd.label : pythonReady ? "Next" : "Loading Python...";
+  $("bNext").classList.toggle("loading", !pythonReady);
+  $("cv").classList.toggle("waiting", !pythonReady);
   $("bNext").classList.toggle("forward", !!fwd);
   $("bSkip").disabled = !pythonReady || atEnd || (has && !stepper.canSkip());
   $("bToStop").disabled = !pythonReady || atEnd || editor.getStops().length === 0;

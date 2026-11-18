@@ -199,20 +199,36 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     drawThumbs();
   }
 
-  let thumbsBusy = false;
+  // Snapshot of the tile pictures (tools/make_thumbs.py). An entry is used only if its
+  // solution code is the same as in lessons.js; else the tile runs Python.
+  const snapshot = fetch(new URL("../lessons/thumbs.json", import.meta.url))
+    .then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+
+  let thumbsBusy = false, thumbsAgain = false;
   async function drawThumbs() {
-    if (thumbsBusy) return;
+    if (thumbsBusy) { thumbsAgain = true; return; } // the map was drawn again: redo when done
     thumbsBusy = true;
-    for (const cv of document.querySelectorAll("#hMap canvas[data-id]")) {
+    const snap = await snapshot;
+    const canvases = [...document.querySelectorAll("#hMap canvas[data-id]")];
+    // First pass: tiles with a fresh snapshot draw at once, with no Python.
+    const later = [];
+    for (const cv of canvases) {
       const l = LESSONS.find((x) => x.id === cv.dataset.id);
+      const last = [...l.steps].reverse().find((s) => s.solution);
       if (!thumbs.has(l.id)) {
-        const last = [...l.steps].reverse().find((s) => s.solution);
-        thumbs.set(l.id, last ? (await runner.run(last.solution)).cmds : []);
+        if (!last) thumbs.set(l.id, []);
+        else if (snap[l.id] && snap[l.id].src === last.solution) thumbs.set(l.id, snap[l.id].cmds);
       }
-      if (!document.contains(cv)) continue;
-      drawThumb(cv, thumbs.get(l.id));
+      if (thumbs.has(l.id)) drawThumb(cv, thumbs.get(l.id));
+      else later.push([cv, l, last]);
+    }
+    // Second pass: the rest wait for Python.
+    for (const [cv, l, last] of later) {
+      if (!thumbs.has(l.id)) thumbs.set(l.id, (await runner.run(last.solution)).cmds);
+      if (document.contains(cv)) drawThumb(cv, thumbs.get(l.id));
     }
     thumbsBusy = false;
+    if (thumbsAgain) { thumbsAgain = false; drawThumbs(); }
   }
 
   // A small picture of the goal: real colors, a light grid, and the turtle where it ends.

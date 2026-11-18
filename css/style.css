@@ -192,3 +192,9 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 /* Next becomes the way forward at the end of a run */
 #bNext.forward { background: #e0b400; border-color: #e0b400; color: #1d2330; animation: ring 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { #bNext.forward { animation: none; } }
+
+/* Loading state until Python is ready (src/md/infrastructure/runtime.md) */
+#bNext.loading:disabled { opacity: 1; background: #e3e0d6; border-color: #e3e0d6; color: #4b5563; animation: loadpulse 1.2s ease-in-out infinite; }
+#cv.waiting { opacity: .55; cursor: progress; }
+@keyframes loadpulse { 50% { opacity: .6; } }
+@media (prefers-reduced-motion: reduce) { #bNext.loading:disabled { animation: none; } }
