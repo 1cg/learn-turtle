@@ -2,3 +2,4 @@
 .talk/
 __pycache__/
 tmp/
+.wrangler/

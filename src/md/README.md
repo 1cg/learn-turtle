@@ -32,3 +32,4 @@ The site runs fully in the browser. The child installs nothing and makes no acco
 - [features/lessons.md](features/lessons.md): lesson track and the order of concepts
 - [api/turtle.md](api/turtle.md): turtle commands, the global versus object rule, and the command record
 - [infrastructure/runtime.md](infrastructure/runtime.md): Pyodide worker, recording format, CDN versions, tests
+- [infrastructure/hosting.md](infrastructure/hosting.md): Cloudflare Pages, the deploy script, the custom domain
