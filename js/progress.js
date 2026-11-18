@@ -4,17 +4,35 @@
 const doneKey = (id) => "lt:done:" + id;
 const codeKey = (id) => "lt:code:" + id;
 
-// True when the code is empty or only the starter of the lesson.
-function isBlank(code, lesson) {
-  return code == null || code.trim() === "" || code.trim() === (lesson.starter || "").trim();
+// Start code of a step, the same rule as js/lessons.js: watch shows its code,
+// try starts from the watch code, extend starts from the solution of the step before.
+export function startCode(lesson, i) {
+  const st = lesson.steps[i];
+  if (st.kind === "watch") return st.code || "";
+  if (st.kind === "try") return st.starter ?? (lesson.steps.find((x) => x.kind === "watch")?.code || "");
+  return lesson.steps[i - 1]?.solution || "";
+}
+
+// Ids for progress: the lesson id, and "<id>:<step>" for each step that has code.
+function stepIds(lesson) {
+  return lesson.steps.map((st, i) => ({ id: lesson.id + ":" + i, i, watch: st.kind === "watch" }));
+}
+
+// True when the code is empty or only the start code of the step.
+function isBlank(code, lesson, i) {
+  return code == null || code.trim() === "" || code.trim() === startCode(lesson, i).trim();
 }
 
 export function collect(storage, lessons) {
-  const progress = { v: 1, done: [], code: {} };
+  const progress = { v: 2, done: [], code: {} };
   for (const l of lessons) {
     if (storage.get(doneKey(l.id)) === "1") progress.done.push(l.id);
-    const code = storage.get(codeKey(l.id));
-    if (!isBlank(code, l)) progress.code[l.id] = code;
+    for (const s of stepIds(l)) {
+      if (storage.get(doneKey(s.id)) === "1") progress.done.push(s.id);
+      if (s.watch) continue;
+      const code = storage.get(codeKey(s.id));
+      if (!isBlank(code, l, s.i)) progress.code[s.id] = code;
+    }
   }
   return progress;
 }
@@ -40,25 +58,29 @@ export async function decode(text) {
   }
   let p;
   try { p = JSON.parse(json); } catch { p = null; }
-  const ok = p && p.v === 1 && Array.isArray(p.done) && p.code && typeof p.code === "object" && !Array.isArray(p.code)
+  const ok = p && (p.v === 1 || p.v === 2) && Array.isArray(p.done) && p.code && typeof p.code === "object" && !Array.isArray(p.code)
     && p.done.every((id) => typeof id === "string")
     && Object.values(p.code).every((c) => typeof c === "string");
   if (!ok) throw new Error("The progress link has data this site does not know. Make a new link on the old computer.");
-  return { v: 1, done: p.done, code: p.code };
+  return { v: p.v, done: p.done, code: p.code };
 }
 
 export function merge(storage, progress, lessons) {
   const report = { done: [], code: [] };
-  const byId = new Map(lessons.map((l) => [l.id, l]));
+  const known = new Map();
+  for (const l of lessons) {
+    known.set(l.id, { l, i: -1 });
+    l.steps.forEach((_, i) => known.set(l.id + ":" + i, { l, i }));
+  }
   for (const id of progress.done) {
-    if (!byId.has(id) || storage.get(doneKey(id)) === "1") continue;
+    if (!known.has(id) || storage.get(doneKey(id)) === "1") continue;
     storage.set(doneKey(id), "1");
-    report.done.push(id);
+    if (known.get(id).i < 0) report.done.push(id);
   }
   for (const [id, code] of Object.entries(progress.code)) {
-    const lesson = byId.get(id);
-    if (!lesson || isBlank(code, lesson)) continue;
-    if (!isBlank(storage.get(codeKey(id)), lesson)) continue;
+    const k = known.get(id);
+    if (!k || k.i < 0 || isBlank(code, k.l, k.i)) continue;
+    if (!isBlank(storage.get(codeKey(id)), k.l, k.i)) continue;
     storage.set(codeKey(id), code);
     report.code.push(id);
   }

@@ -9,7 +9,7 @@
 <h1>Progress test</h1>
 <div id="log">running...</div>
 <script type="module">
-import { collect, encode, decode, merge } from "../js/progress.js";
+import { collect, encode, decode, merge, startCode } from "../js/progress.js";
 import { LESSONS } from "../lessons/lessons.js";
 
 const log = document.getElementById("log");
@@ -21,54 +21,61 @@ const mem = (init = {}) => { const m = new Map(Object.entries(init)); return { g
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const L = LESSONS;
 const [a, b, c] = L;
+// Step 1 of each lesson is a try step.
+const A = a.id + ":1", B = b.id + ":1", C = c.id + ":1";
 
 const cases = [];
 const test = (name, fn) => cases.push([name, fn]);
 
-test("collect: done and real code, skip starter and empty", () => {
+test("lessons start with watch, then try", () => [a, b, c].every((l) => l.steps[0].kind === "watch" && l.steps[1].kind === "try"));
+
+test("collect: done and real code, skip start code and empty", () => {
   const s = mem({
-    ["lt:done:" + a.id]: "1", ["lt:code:" + a.id]: a.solution,
-    ["lt:code:" + b.id]: b.starter, ["lt:code:" + c.id]: "  \n",
+    ["lt:done:" + a.id]: "1", ["lt:done:" + A]: "1", ["lt:code:" + A]: a.steps[1].solution,
+    ["lt:code:" + B]: startCode(b, 1), ["lt:code:" + C]: "  \n",
     "lt:code:free": "forward(1)\n", "lt:done:nope": "1",
   });
-  return eq(collect(s, L), { v: 1, done: [a.id], code: { [a.id]: a.solution } });
+  return eq(collect(s, L), { v: 2, done: [a.id, A], code: { [A]: a.steps[1].solution } });
 });
 
+test("start code: try = watch code, extend = solution before", () =>
+  startCode(a, 1) === a.steps[0].code && startCode(a, 2) === a.steps[1].solution);
+
 test("encode then decode gives the same progress", async () => {
-  const p = { v: 1, done: [a.id, b.id], code: { [a.id]: "forward(100)  # é ü 🐢\n" } };
+  const p = { v: 2, done: [a.id, A], code: { [A]: "forward(100)  # \u00e9 \u00fc \ud83d\udc22\n" } };
   return eq(await decode(await encode(p)), p);
 });
 
-test("encode gives base64url only", async () => /^[A-Za-z0-9_-]+$/.test(await encode({ v: 1, done: [], code: {} })));
+test("encode gives base64url only", async () => /^[A-Za-z0-9_-]+$/.test(await encode({ v: 2, done: [], code: {} })));
 
-test("merge: done adds up, never removes", () => {
+test("merge: done adds up, never removes; report lists lessons only", () => {
   const s = mem({ ["lt:done:" + b.id]: "1" });
-  const r = merge(s, { v: 1, done: [a.id, b.id, "unknown-9"], code: {} }, L);
-  return eq(r, { done: [a.id], code: [] }) && s.get("lt:done:" + b.id) === "1" && s.get("lt:done:unknown-9") === null;
+  const r = merge(s, { v: 2, done: [a.id, A, b.id, "unknown-9"], code: {} }, L);
+  return eq(r, { done: [a.id], code: [] }) && s.get("lt:done:" + A) === "1" && s.get("lt:done:unknown-9") === null;
 });
 
-test("merge: link code goes in where no code or starter only", () => {
-  const s = mem({ ["lt:code:" + b.id]: b.starter });
-  const r = merge(s, { v: 1, done: [], code: { [a.id]: "A\n", [b.id]: "B\n" } }, L);
-  return eq(r, { done: [], code: [a.id, b.id] }) && s.get("lt:code:" + a.id) === "A\n" && s.get("lt:code:" + b.id) === "B\n";
+test("merge: link code goes in where no code or start code only", () => {
+  const s = mem({ ["lt:code:" + B]: startCode(b, 1) });
+  const r = merge(s, { v: 2, done: [], code: { [A]: "A\n", [B]: "B\n" } }, L);
+  return eq(r, { done: [], code: [A, B] }) && s.get("lt:code:" + A) === "A\n" && s.get("lt:code:" + B) === "B\n";
 });
 
 test("merge: code on this computer wins", () => {
-  const s = mem({ ["lt:code:" + a.id]: "mine\n" });
-  const r = merge(s, { v: 1, done: [], code: { [a.id]: "theirs\n" } }, L);
-  return eq(r.code, []) && s.get("lt:code:" + a.id) === "mine\n";
+  const s = mem({ ["lt:code:" + A]: "mine\n" });
+  const r = merge(s, { v: 2, done: [], code: { [A]: "theirs\n" } }, L);
+  return eq(r.code, []) && s.get("lt:code:" + A) === "mine\n";
 });
 
-test("merge: starter-only code in the link changes nothing", () => {
+test("merge: start-code-only code in the link changes nothing", () => {
   const s = mem();
-  const r = merge(s, { v: 1, done: [], code: { [a.id]: a.starter } }, L);
-  return eq(r.code, []) && s.get("lt:code:" + a.id) === null;
+  const r = merge(s, { v: 2, done: [], code: { [A]: startCode(a, 1) } }, L);
+  return eq(r.code, []) && s.get("lt:code:" + A) === null;
 });
 
 for (const [name, bad] of [["bad letters", "abc$%"], ["cut short", null], ["not progress", "q1YqUbJSKkktLlGqBQA"], ["empty", ""]]) {
   test("decode rejects: " + name, async () => {
     let text = bad;
-    if (text === null) { const full = await encode({ v: 1, done: [a.id], code: { [a.id]: a.solution } }); text = full.slice(0, full.length / 2); }
+    if (text === null) { const full = await encode({ v: 2, done: [a.id], code: { [A]: a.steps[1].solution } }); text = full.slice(0, full.length / 2); }
     try { await decode(text); return false; } catch (e) { return e instanceof Error && e.message.length > 0; }
   });
 }
@@ -81,13 +88,17 @@ for (const [name, fn] of cases) {
   say(`${ok ? "PASS" : "FAIL"} ${name}`, ok);
 }
 
-// Link length with all lessons done and each solution as code.
-const all = { v: 1, done: L.map((l) => l.id), code: Object.fromEntries(L.map((l) => [l.id, l.solution])) };
+// Link length with all lessons and steps done and each solution as code.
+const all = { v: 2, done: [], code: {} };
+for (const l of L) {
+  all.done.push(l.id);
+  l.steps.forEach((st, i) => { all.done.push(l.id + ":" + i); if (st.solution) all.code[l.id + ":" + i] = st.solution; });
+}
 const text = await encode(all);
 const url = "https://learnturtle.org/#p=" + text;
 const json = JSON.stringify(all).length;
 const back = eq(await decode(text), all);
-say(`${back ? "PASS" : "FAIL"} full link: ${L.length} lessons, JSON ${json} chars, link ${url.length} chars`, back);
+say(`${back ? "PASS" : "FAIL"} full link: ${L.length} lessons, ${Object.keys(all.code).length} steps, JSON ${json} chars, link ${url.length} chars`, back);
 if (back) pass++;
 
 const total = cases.length + 1;

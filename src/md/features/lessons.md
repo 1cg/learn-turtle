@@ -1,6 +1,6 @@
 # Lessons
 
-The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`) is card-7.
+The engine is `js/lessons.js`. The content is `lessons/lessons.js`.
 
 ## Goals
 
@@ -32,12 +32,13 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 
 ## Engine
 
-- The URL hash picks the lesson: `#lesson=<id>`. No hash is free draw.
-- The header shows the lesson picker and progress dots. A link switches between lessons and free draw.
-- A strip above the code shows the concept, the text, the task, hints (one at a time), "Watch an example" and "Reset code". The strip folds with "hide".
-- "Watch an example" puts the example in the editor as read only and plays it. "Back to my code" puts the child's code back.
-- "Reset code" needs two clicks. The site uses no browser dialogs.
-- The goal is the drawing of `solution`. It shows as a wide light dashed line under the child's drawing.
+- The URL hash picks the view: `#home` (or no hash), `#free`, `#lesson=<id>`, `#lesson=<id>&step=<n>`, `#p=<progress>`.
+- Without `&step`, a lesson opens at its first step that is not done.
+- The strip above the code shows the concept, the step pills (Watch, Try, Extend), the text, and the actions of the step. "hide" folds the strip.
+- Watch: the editor is read only and shows the step `code`. A purple "Look for" box asks one question. "seen N of M steps" counts the debugger steps. "Your turn" opens when the run reaches its end (also at an error in an error lesson). Then the watch step is done.
+- Try and Extend: the editor is the child's. The goal shows under the drawing. A green bar marks lines that differ from the start code. "Watch again" goes back to the watch step. "Reset code" (two clicks, no browser dialog) goes back to the start code.
+- Start code: try = the watch code (or `starter`); extend = the child's saved code of the step before (or the solution before). `startCode` in `js/progress.js` is the rule without the saved code.
+- A matched step is done. A lesson is done when all its try and extend steps are done. The badge then links to the next step, the next lesson, or the home page.
 
 ## Check
 
@@ -48,7 +49,7 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 
 ## Storage
 
-- `localStorage` keys: `lt:code:<id>` (code, `free` for free draw), `lt:done:<id>` ("1"), `lt:fold`.
+- `localStorage` keys: `lt:code:<id>:<step>` (code of a step), `lt:code:free`, `lt:done:<id>:<step>` and `lt:done:<id>` ("1"), `lt:fold`.
 - All reads and writes are in try/catch. Without storage the site works but forgets.
 
 ## Progress link
@@ -56,15 +57,15 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 - A link moves the progress of a child to another computer. There is no account and no server: the data is in the URL fragment after `#p=`. The browser does not send a fragment to the server.
 - The link holds the done lessons and the code of each lesson. It does not hold free draw code.
 - `js/progress.js` has pure functions (no DOM). `storage` is an object with `get(key)` and `set(key, value)`, as `store` in `js/lessons.js`.
-  - `collect(storage, lessons)` gives `{v: 1, done: [id, ...], code: {id: code}}`. It skips code that is empty or the same as the starter.
+  - `collect(storage, lessons)` gives `{v: 2, done: [id, ...], code: {"<id>:<step>": code}}`. `done` has lesson ids and step ids. It skips code that is empty or the same as the start code of the step (`startCode`).
   - `encode(progress)` gives the text after `#p=`: JSON, deflate-raw (`CompressionStream`), then base64url with no padding.
   - `decode(text)` reverses `encode`. If the text is bad, it throws an `Error` with a plain message.
   - `merge(storage, progress, lessons)` changes `storage` and gives `{done: [id, ...], code: [id, ...]}`: the lessons it marked done and the lessons whose code it wrote.
 - Merge rules:
   - Done adds up. The merge never removes a done mark.
-  - Code from the link goes in only if this computer has no code for the lesson, or only the starter. Else the code on this computer stays.
+  - Code from the link goes in only if this computer has no code for the step, or only its start code. Else the code on this computer stays.
   - The merge ignores lesson ids that are not in `lessons`.
-- The UI (buttons, `mailto`, reading `#p=` at start) is card-16.
+- The UI (buttons, `mailto`, reading `#p=`) is on the home page: see `home.md`.
 - `test/progress-test.html` tests the functions and shows the link length with all 24 solutions as code.
 - Link length (2026-11-18): all 24 lessons done with each solution as code is 2988 characters of JSON and a 1062-character link. Real child code is longer than a solution, so a link can be some thousand characters.
 

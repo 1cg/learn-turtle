@@ -181,6 +181,7 @@ export async function createEditor(el, value) {
 
   // ---- debugger line marks ----
   const marks = ed.createDecorationsCollection([]);
+  const changed = ed.createDecorationsCollection([]);
   const api = {
     monaco, editor: ed, model,
     onStopsChange: () => {},
@@ -220,6 +221,11 @@ export async function createEditor(el, value) {
     },
     clearError() { monaco.editor.setModelMarkers(model, "run", []); },
     setVarLookup(fn) { varLookup = fn; },
+    // Green bar on lines that differ from the start code of a lesson step.
+    setChanged(lines) {
+      changed.set(lines.map((n) => ({ range: new monaco.Range(n, 1, n, 1), options: { isWholeLine: true, linesDecorationsClassName: "ln-changed" } })));
+    },
+    setReadOnly(on) { ed.updateOptions({ readOnly: on, readOnlyMessage: { value: "This is the example. Press Your turn to write code." } }); },
   };
   return api;
 }

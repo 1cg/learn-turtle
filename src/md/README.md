@@ -30,6 +30,7 @@ The site runs fully in the browser. The child installs nothing and makes no acco
 - [features/debugger.md](features/debugger.md): step debugger, controls, and the UI decisions behind them
 - [features/explanations.md](features/explanations.md): the gray `# ...` text for each step
 - [features/lessons.md](features/lessons.md): lesson track and the order of concepts
+- [features/home.md](features/home.md): home page, lesson map, progress buttons, lesson header
 - [features/feedback.md](features/feedback.md): Feedback button, the Worker endpoint, checks and storage
 - [api/turtle.md](api/turtle.md): turtle commands, the global versus object rule, and the command record
 - [infrastructure/runtime.md](infrastructure/runtime.md): Pyodide worker, recording format, CDN versions, tests

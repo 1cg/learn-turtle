@@ -9,28 +9,83 @@
 <body>
 <header>
   <h1>Learn Turtle</h1>
-  <div class="lnav" id="lnav" hidden>
-    <button id="lPrev" title="Last lesson"><svg viewBox="0 0 24 24"><path d="M16 5v14L5 12z" fill="currentColor"/></svg></button>
-    <span class="ltitle" id="lTitle"></span>
-    <button id="lNext" title="Next lesson"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
-    <span class="dots" id="lDots"></span>
+  <div class="lhead" id="lhead" hidden>
+    <a class="back" id="lBack" href="#home"><svg viewBox="0 0 24 24"><path d="M16 5v14L5 12z" fill="currentColor"/></svg>All lessons</a>
+    <b id="lTitle"></b> <span class="of" id="lOf"></span>
   </div>
   <span class="spacer"></span>
   <span class="status" id="status">Loading Python...</span>
-  <a class="modelink" id="modeLink" href="#" hidden></a>
 </header>
 
-<main>
+<div class="home" id="home" hidden>
+  <section class="panel hero">
+    <div class="words">
+      <h2>Let's learn Python!</h2>
+      <p>You write Python. The turtle draws it. That's it!</p>
+      <p>Well, almost. The turtle does <em>exactly</em> what your code says, and that isn't always what you meant. So you can run your code one step at a time, see what each line does, and back up when the turtle goes somewhere weird.</p>
+    </div>
+    <div>
+      <div class="bubble">Hi! I go where your code tells me.</div>
+      <svg viewBox="0 0 240 170" width="250" role="img" aria-label="A friendly turtle with a pencil">
+        <path d="M10 150 H 70" stroke="#1565c0" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
+        <!-- legs -->
+        <ellipse cx="78" cy="138" rx="14" ry="10" fill="#6fbf73"/>
+        <ellipse cx="150" cy="138" rx="14" ry="10" fill="#6fbf73"/>
+        <ellipse cx="96" cy="142" rx="12" ry="9" fill="#5aab5e"/>
+        <ellipse cx="134" cy="142" rx="12" ry="9" fill="#5aab5e"/>
+        <path d="M54 120 q-14 4 -18 -6 q10 -2 18 0z" fill="#6fbf73"/>
+        <!-- shell -->
+        <path d="M58 128 Q 60 52 114 48 Q 168 52 170 128 Z" fill="#2f7d4f"/>
+        <path d="M58 128 H 170" stroke="#1f5c39" stroke-width="6" stroke-linecap="round"/>
+        <path d="M114 62 l18 10 v20 l-18 10 l-18 -10 v-20z" fill="#3f9a63"/>
+        <path d="M80 92 l14 8 v18 h-28 v-16z" fill="#3f9a63"/>
+        <path d="M148 92 l-14 8 v18 h28 v-16z" fill="#3f9a63"/>
+        <!-- head -->
+        <path d="M166 112 q6 -8 14 -10" stroke="#6fbf73" stroke-width="16" stroke-linecap="round" fill="none"/>
+        <circle cx="194" cy="92" r="28" fill="#6fbf73"/>
+        <circle cx="186" cy="84" r="9" fill="#fff"/><circle cx="206" cy="84" r="9" fill="#fff"/>
+        <circle cx="188" cy="86" r="5" fill="#1d2330"/><circle cx="208" cy="86" r="5" fill="#1d2330"/>
+        <circle cx="190" cy="84" r="1.6" fill="#fff"/><circle cx="210" cy="84" r="1.6" fill="#fff"/>
+        <circle cx="180" cy="100" r="5" fill="#f4a3a3" opacity=".7"/><circle cx="214" cy="100" r="5" fill="#f4a3a3" opacity=".7"/>
+        <path d="M188 102 q9 9 18 0" stroke="#1d2330" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- pencil -->
+        <g transform="translate(66 150) rotate(-35)">
+          <rect x="0" y="-5" width="44" height="10" rx="2" fill="#f2c94c"/>
+          <rect x="36" y="-5" width="8" height="10" fill="#e88"/>
+          <path d="M0 -5 L -10 0 L 0 5z" fill="#e8c9a0"/><path d="M-6 -2 L -10 0 L -6 2z" fill="#1d2330"/>
+        </g>
+      </svg>
+    </div>
+    <div class="words">
+      <div class="cta">
+        <a class="btn primary big" id="hStart" href="#lesson=">Start lesson 1</a>
+        <a class="btn" id="hFree" href="#free">Free draw</a>
+      </div>
+      <p class="cap" id="hProgress" hidden>Your progress stays in this browser. To use another computer:
+        <button class="mini" id="hEmail">Email me my progress</button>
+        <button class="mini" id="hCopy">Copy my progress link</button></p>
+      <p class="cap msg" id="hMsg" hidden></p>
+    </div>
+  </section>
+  <h2 class="mapt">Your lessons</h2>
+  <div id="hMap"></div>
+</div>
+
+<main id="work" hidden>
   <section class="left">
     <div class="panel lesson" id="lesson" hidden>
       <h2><span id="lConcept"></span><span class="fold" id="lFold">hide</span></h2>
+      <div class="steps" id="lSteps"></div>
       <div class="lbody" id="lBody">
         <p id="lText"></p>
-        <div class="task" id="lTask"></div>
+        <div class="look" id="lLook" hidden></div>
+        <div class="task" id="lTask" hidden></div>
         <div class="acts">
-          <button id="lHint">Hint</button>
-          <button id="lExample">Watch an example</button>
-          <button id="lReset">Reset code</button>
+          <span class="seen" id="lSeen" hidden></span>
+          <button class="go" id="lTurn" hidden>Your turn</button>
+          <button id="lHint" hidden>Hint</button>
+          <button id="lWatch" hidden>Watch again</button>
+          <button id="lReset" hidden>Reset code</button>
         </div>
         <div class="hints" id="lHints"></div>
       </div>
