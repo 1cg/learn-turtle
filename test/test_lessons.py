@@ -1,5 +1,5 @@
 """Tests for lessons/lessons.js. Run: python3 test/test_lessons.py
-Intent: src/md/features/lessons.md (Lesson file, Lesson test)."""
+Intent: src/md/features/lessons.md (Lesson format, Lesson file, Lesson test)."""
 import json
 import os
 import re
@@ -10,16 +10,21 @@ sys.path.insert(0, os.path.join(ROOT, "py"))
 import tracer   # noqa: E402
 import turtle   # noqa: E402  (py/turtle.py, not the standard library)
 
-FIELDS = ["id", "unit", "title", "concept", "text", "task", "starter", "solution", "hints", "example", "objects"]
+LESSON_FIELDS = ["id", "unit", "title", "concept", "objects", "steps"]
+STEP_FIELDS = {
+    "watch": ["text", "look", "code"],
+    "try": ["text", "task", "solution", "hints"],
+    "extend": ["text", "task", "solution", "hints"],
+}
 OBJECTS_UNIT = 11
 COMMANDS = sorted(m for m in dir(turtle.Turtle) if not m.startswith("_"))
 GLOBAL_CALL = re.compile(r"^\s*(?:" + "|".join(COMMANDS) + r")\s*\(", re.M)
 
 
-def load():
-    src = open(os.path.join(ROOT, "lessons", "lessons.js")).read()
+def load(path=os.path.join(ROOT, "lessons", "lessons.js")):
+    src = open(path).read()
     m = re.search(r"export const LESSONS = (\[.*\]);\s*$", src, re.S)
-    assert m, "lessons/lessons.js: no 'export const LESSONS = [...];' found"
+    assert m, f"{path}: no 'export const LESSONS = [...];' found"
     return json.loads(m.group(1))
 
 
@@ -40,46 +45,63 @@ def lines(result):
     return segs
 
 
+def style_errors(name, code, objects):
+    if objects:
+        m = GLOBAL_CALL.search(code)
+        if m:
+            return [f"{name}: global call {m.group(0).strip()!r} in an objects lesson"]
+    elif "Turtle(" in code:
+        return [f"{name}: Turtle() before unit {OBJECTS_UNIT}"]
+    return []
+
+
 def check(lesson):
-    errs = []
     lid = lesson.get("id", "?")
-    for f in FIELDS:
-        if f not in lesson:
-            errs.append(f"missing field {f}")
+    errs = [f"missing field {f}" for f in LESSON_FIELDS if f not in lesson]
     if errs:
-        return errs
-    for f in ["title", "concept", "text", "task", "solution", "example"]:
-        if not lesson[f].strip():
-            errs.append(f"{f} is empty")
-    if not lesson["hints"]:
-        errs.append("no hints")
+        return [f"{lid}: {e}" for e in errs]
     if lesson["objects"] != (lesson["unit"] >= OBJECTS_UNIT):
         errs.append(f"objects must be {lesson['unit'] >= OBJECTS_UNIT} in unit {lesson['unit']}")
+    steps = lesson["steps"]
+    kinds = [s.get("kind") for s in steps]
+    if len(kinds) < 2 or kinds[0] != "watch" or kinds[1] != "try" or any(k != "extend" for k in kinds[2:]):
+        errs.append(f"steps must be watch, try, then extends: {kinds}")
+        return [f"{lid}: {e}" for e in errs]
 
-    for name in ["solution", "example", "starter"]:
-        code = lesson[name]
-        if lesson["objects"]:
-            m = GLOBAL_CALL.search(code)
-            if m:
-                errs.append(f"{name}: global call {m.group(0).strip()!r} in an objects lesson")
-        elif "Turtle(" in code:
-            errs.append(f"{name}: Turtle() before unit {OBJECTS_UNIT}")
-        r = run(code)
-        if name != "starter" and r["error"]:
-            errs.append(f"{name}: {r['error'].get('type')}: {r['error'].get('msg')}")
-
-    goal = lines(run(lesson["solution"]))
-    if not goal:
-        errs.append("solution draws no line")
-    if lesson["starter"].strip() == lesson["solution"].strip():
-        errs.append("starter is the solution")
-    elif lines(run(lesson["starter"])) == goal:
-        errs.append("starter already draws the goal")
+    prev = None  # the code the step starts from
+    for i, s in enumerate(steps):
+        name = f"step {i + 1} ({s['kind']})"
+        for f in STEP_FIELDS[s["kind"]]:
+            if f not in s or (isinstance(s[f], str) and not s[f].strip()) or (f == "hints" and not s[f]):
+                errs.append(f"{name}: {f} is missing or empty")
+        if errs:
+            continue
+        if s["kind"] == "watch":
+            if not s["look"].startswith("Look for: "):
+                errs.append(f"{name}: look must start with 'Look for: '")
+            errs += style_errors(name + " code", s["code"], lesson["objects"])
+            r = run(s["code"])
+            if bool(r["error"]) != bool(s.get("expectError")):
+                got = r["error"] and f"{r['error'].get('type')}: {r['error'].get('msg')}"
+                errs.append(f"{name}: expectError is {bool(s.get('expectError'))}, error is {got}")
+            prev = s["code"]
+            continue
+        start = s.get("starter", prev) if s["kind"] == "try" else prev
+        for key, code in [("solution", s["solution"])] + ([("starter", s["starter"])] if "starter" in s else []):
+            errs += style_errors(f"{name} {key}", code, lesson["objects"])
+        r = run(s["solution"])
+        if r["error"]:
+            errs.append(f"{name}: solution: {r['error'].get('type')}: {r['error'].get('msg')}")
+        goal = lines(r)
+        if not goal:
+            errs.append(f"{name}: solution draws no line")
+        elif lines(run(start)) == goal:
+            errs.append(f"{name}: the start code already draws the goal")
+        prev = s["solution"]
     return [f"{lid}: {e}" for e in errs]
 
 
-def main():
-    lessons = load()
+def check_all(lessons):
     errs = []
     ids = [ls.get("id") for ls in lessons]
     for i in sorted(set(i for i in ids if ids.count(i) > 1)):
@@ -89,10 +111,21 @@ def main():
         errs.append("lessons are not in unit order")
     for lesson in lessons:
         errs += check(lesson)
-    for e in errs:
-        print("FAIL", e)
-    print(f"{len(lessons)} lessons, {len(errs)} failures")
-    sys.exit(1 if errs else 0)
+    return errs
+
+
+def main():
+    failed = False
+    for label, path in [("lessons", os.path.join(ROOT, "lessons", "lessons.js")),
+                        ("fixture", os.path.join(ROOT, "test", "lessons-fixture.js"))]:
+        lessons = load(path)
+        errs = check_all(lessons)
+        for e in errs:
+            print("FAIL", label, e)
+        steps = sum(len(ls["steps"]) for ls in lessons)
+        print(f"{label}: {len(lessons)} lessons, {steps} steps, {len(errs)} failures")
+        failed = failed or bool(errs)
+    sys.exit(1 if failed else 0)
 
 
 if __name__ == "__main__":

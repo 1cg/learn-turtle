@@ -70,21 +70,35 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 
 ## Lesson format
 
-`{ id, unit, title, concept, text, task, starter, solution, hints, example, objects }`. In `text`, `task` and `hints`, only `` `code` `` is formatted. `?fixture` in the URL loads `test/lessons-fixture.js` instead of the real lessons.
+```
+{ id, unit, title, concept, objects,
+  steps: [
+    { kind: "watch", text, look, code, expectError? },
+    { kind: "try", text, task, solution, hints, starter? },
+    { kind: "extend", text, task, solution, hints },
+  ] }
+```
+
+- `watch`: `code` runs read only in the debugger. `look` is one question that starts with "Look for:". There is no check and no goal. `expectError: true` marks a watch that shows an error on purpose (unit 2).
+- `try`: the starter is the watch `code`. Give `starter` only if it must be different. The task changes the watch code. The goal is the drawing of `solution`.
+- `extend`: the engine starts it from the child's own code of the step before. The task builds on that code, and `solution` extends the solution of the step before.
+- Most lessons have watch, try, extend. Error lessons: the watch shows the error, the try fixes it. Projects can have 2 extends.
+- In `text`, `task`, `look` and `hints`, only `` `code` `` is formatted.
+- `?fixture` in the URL loads `test/lessons-fixture.js` instead of the real lessons.
 
 ## Lesson file
 
 - `lessons/lessons.js` is `export const LESSONS = [...];` with a JSON body (keys in double quotes, no comments). A Python test reads it with `json`.
 - The `id` is `<topic>-<n>`, for example `variables-1`. Do not change an `id`: progress and code in `localStorage` use it.
 - `objects` is `true` from unit 11 on.
-- `starter` can have an error on purpose (unit 2). `solution` and `example` must run with no error.
-- `solution` must draw at least one line: the check compares lines only.
+- A watch `code` can have an error only with `expectError: true`. Each `solution` must run with no error.
+- Each `solution` must draw at least one line: the check compares lines only.
 
 ## Lesson test
 
-`python3 test/test_lessons.py` runs every `solution`, `example` and `starter` with `py/tracer.py` in CPython. It also checks:
+`python3 test/test_lessons.py` runs every watch `code`, try `starter` and step `solution` with `py/tracer.py` in CPython. It also checks:
 
-- the fields and the unique `id`s,
+- the fields, the step kinds and order (watch, try, then extends), and the unique `id`s,
+- a watch has an error if and only if it has `expectError: true`,
 - no `Turtle()` before unit 11, and no global turtle calls from unit 11 on,
-- each `solution` draws a line, and each `starter` is not the `solution`.
-
+- each `solution` draws a line, and each step's start code does not draw its goal already.
