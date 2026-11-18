@@ -5,12 +5,12 @@ export const LESSONS = [
     "id": "calls-1",
     "unit": 1,
     "title": "First steps",
-    "concept": "A program is steps in order",
+    "concept": "Programs",
     "objects": false,
     "steps": [
       {
         "kind": "watch",
-        "text": "A program is a list of steps. Python does them in order, from the top line to the bottom line.\n\nHere is a program with one step. `forward(50)` tells the turtle to walk 50 steps. Press Next and watch it go.",
+        "text": "First things first: let's learn what a *program* is. A program is a set of steps for a computer to *execute*, typically one instruction after the other. We are going to be looking at instructions written in *Python*, a widely used programming language. In order to have some fun as we learn, we are going to use *turtle*, a library for drawing based on a simple concept: a turtle moves around on the screen, drawing things as he goes.\n\nWe will start out by calling a *function*. A function is a way to collect a bit of logic into a single place so it can be *called* from other places. Here we are calling a function forward() and passing it an *argument*. Functions in Python take arguments between the () and use commas to separate arguments if we want to pass more than one. Functions have a specific number of arguments they expect. In this case, forward() expects 1 argument: how far to move forward. Try clicking next to see it execute.",
         "look": "Look for: how far does the turtle move?",
         "code": "forward(50)\n"
       },
@@ -42,7 +42,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Everybody makes errors. Good programmers read them. An error message tells you the line and the problem.\n\nThis program has an error on purpose. Run it and read what Python says.",
+        "text": "Every programmer makes mistakes. When Python cannot run a line, it stops and shows an *error*. An error message has two parts that matter: the *line number* and a short description of the problem.\n\nPython is very exact about names. `forward` works, but `fowrard` is a name Python has never seen, so it gives a *NameError*. Names are also case sensitive: `Forward` is not `forward` either. Click Next to run the program and read the error it shows.",
         "look": "Look for: which line has the error? What does the message say?",
         "code": "forward(100)\nleft(90)\nfowrard(100)\n",
         "expectError": true
@@ -75,7 +75,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A variable is a box with a name. `size = 50` puts 50 in a box named `size`. Then `forward(size)` uses what is in the box.\n\nWatch where the program uses the value in `size`.",
+        "text": "A *variable* is a name for a value. You can think of it as a box with a label. In Python you make one with `=`: `size = 50` puts 50 in a box named `size`. Here `=` means \"put into\", not \"is equal to\".\n\nAfter that, you can use the name anywhere you could use the value: `forward(size)` is the same as `forward(50)`. A name is one word: letters, digits and `_`, and it cannot start with a digit. Click Next and watch the box fill up.",
         "look": "Look for: where does the program use the value in `size`?",
         "code": "size = 50\nforward(size)\nleft(90)\nforward(size)\n"
       },
@@ -106,7 +106,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Typing the same lines again and again gets boring. A `for` loop runs the lines inside it many times for you.\n\nThe lines inside the loop have 4 spaces in front. Watch which lines run 4 times and which line runs only once.",
+        "text": "A *loop* runs the same lines many times. The `for` loop is the most common one. `for i in range(4):` means \"do this 4 times\". Each time is a *round*, and `i` counts the rounds: 0, 1, 2, 3.\n\nThe rules: the `for` line ends with a colon `:`, and the lines inside the loop are indented by 4 spaces. The indent is how Python knows which lines belong to the loop. Here, `forward` and `left` run 4 times, and that makes a square. Click Next to watch each round.",
         "look": "Look for: which lines run 4 times? Which line runs only once?",
         "code": "for i in range(4):\n    forward(40)\n    left(90)\n"
       },

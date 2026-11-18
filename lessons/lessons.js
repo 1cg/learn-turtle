@@ -42,7 +42,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A command like `left(90)` is a function call. The number in the brackets is the argument: it says how much.\n\nWatch which line turns the turtle, and which way it turns.",
+        "text": "A program can call more than one function. Python runs the calls in order, one line at a time, top to bottom. The turtle also has a *heading*: the direction it faces. At the start, it faces right.\n\n`left(90)` turns the turtle 90 *degrees* to its left. It does not move and does not draw; it only changes the heading. A full turn is 360 degrees, so 90 is a square corner. In this program the turtle walks, turns, and walks again. Click Next to see it run.",
         "look": "Look for: which line turns the turtle, and which way?",
         "code": "forward(60)\nleft(90)\nforward(60)\n"
       },
@@ -73,7 +73,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Everybody makes errors. Good programmers read them. An error message tells you the line and the problem.\n\nThis program has an error on purpose. Run it and read what Python says.",
+        "text": "Every programmer makes mistakes. When Python cannot run a line, it stops and shows an *error*. An error message has two parts that matter: the *line number* and a short description of the problem.\n\nPython is very exact about names. `forward` works, but `fowrard` is a name Python has never seen, so it gives a *NameError*. Names are also case sensitive: `Forward` is not `forward` either. Click Next to run the program and read the error it shows.",
         "look": "Look for: which line has the error? What does the message say?",
         "code": "forward(100)\nleft(90)\nfowrard(100)\n",
         "expectError": true
@@ -106,7 +106,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Brackets come in pairs. Each `(` needs a `)`. If one is missing, Python stops before it runs anything.\n\nRun this program and see where Python says the problem is.",
+        "text": "There is a second kind of error: a *syntax error*. *Syntax* is the grammar of Python: where brackets, commas and colons go. If the grammar is wrong, Python does not run any line at all, not even the good ones.\n\nBrackets always come in pairs: each `(` needs a `)`. On line 1 of this program, the `)` is missing. Python says the `(` was never closed, and gives its line. Click Next and read the message.",
         "look": "Look for: where does Python say the problem is?",
         "code": "forward(80\nleft(90)\nforward(80)\n",
         "expectError": true
@@ -140,7 +140,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A line that starts with `#` is a comment. Python skips it. Comments are notes for people, not for the turtle.\n\nWatch which lines Python runs and which lines it skips.",
+        "text": "A *comment* is a note for people. In Python, a comment starts with `#` and goes to the end of the line. Python skips comments completely, so you can write anything in them.\n\nGood comments say what a group of lines is for, like `# Up` and `# Right` here. The other lines show that *order* matters: turn first, then walk, gives a different drawing than walk first, then turn. Click Next and watch which lines Python runs and which it skips.",
         "look": "Look for: which lines does Python skip?",
         "code": "# Up\nleft(90)\nforward(40)\n# Right\nright(90)\nforward(40)\n"
       },
@@ -171,7 +171,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A variable is a box with a name. `size = 50` puts 50 in a box named `size`. Then `forward(size)` uses what is in the box.\n\nWatch where the program uses the value in `size`.",
+        "text": "A *variable* is a name for a value. You can think of it as a box with a label. In Python you make one with `=`: `size = 50` puts 50 in a box named `size`. Here `=` means \"put into\", not \"is equal to\".\n\nAfter that, you can use the name anywhere you could use the value: `forward(size)` is the same as `forward(50)`. A name is one word: letters, digits and `_`, and it cannot start with a digit. Click Next and watch the box fill up.",
         "look": "Look for: where does the program use the value in `size`?",
         "code": "size = 50\nforward(size)\nleft(90)\nforward(size)\n"
       },
@@ -202,7 +202,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "You can do math with a box. `step = step * 2` takes the value out, doubles it, and puts it back in the same box.\n\nWatch what is in `step` after line 3.",
+        "text": "A variable can change. You can put a new value in the box at any time, and the old value is gone. You can also do *math* with variables: `+` adds, `-` subtracts, `*` multiplies and `/` divides.\n\nLook at `step = step * 2`. Python works on the right side first: it takes the value out of `step`, doubles it, and then puts the result back in `step`. So the second `forward(step)` walks twice as far as the first. Click Next and watch the value of `step` change.",
         "look": "Look for: what is in `step` after line 3?",
         "code": "step = 20\nforward(step)\nstep = step * 2\nleft(90)\nforward(step)\n"
       },
@@ -233,7 +233,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Values have types. `50` is a number. `\"50\"` is text, called a string. They look alike, but Python treats them very differently.\n\n`int(text)` makes a number from text. Watch what `print` shows, and think about why it is not 5050.",
+        "text": "Every value in Python has a *type*. `50` is an *integer*, a whole number. `\"50\"` with quotes is a *string*: text. They look alike, but they act differently: numbers add, strings stick together.\n\n`int(text)` makes a number from a string, so `side` holds the number 50. `print(...)` shows a value in the output box under the code. If you ever see `5050` where you wanted `100`, a string slipped in. Click Next to see what this program prints.",
         "look": "Look for: what does `print` show? Why is it not 5050?",
         "code": "text = \"50\"\nside = int(text)\nprint(side + side)\nforward(side)\n"
       },
@@ -266,7 +266,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Typing the same lines again and again gets boring. A `for` loop runs the lines inside it many times for you.\n\nThe lines inside the loop have 4 spaces in front. Watch which lines run 4 times and which line runs only once.",
+        "text": "A *loop* runs the same lines many times. The `for` loop is the most common one. `for i in range(4):` means \"do this 4 times\". Each time is a *round*, and `i` counts the rounds: 0, 1, 2, 3.\n\nThe rules: the `for` line ends with a colon `:`, and the lines inside the loop are indented by 4 spaces. The indent is how Python knows which lines belong to the loop. Here, `forward` and `left` run 4 times, and that makes a square. Click Next to watch each round.",
         "look": "Look for: which lines run 4 times? Which line runs only once?",
         "code": "for i in range(4):\n    forward(40)\n    left(90)\n"
       },
@@ -298,7 +298,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "The turns of a closed shape always add up to 360 degrees. So the turn is 360 divided by the number of sides.\n\nWatch how many times this loop runs. Then check: what is 5 times 72?",
+        "text": "With a loop you can draw any shape with equal sides. You need two numbers: how many sides, and how far to turn at each corner.\n\nWhen the turtle goes all the way around a shape, it turns 360 degrees in all. So each turn is 360 divided by the number of sides. This loop runs 5 times and turns 72 each time, because 360 / 5 = 72. Click Next and count the rounds.",
         "look": "Look for: how many times does the loop run? What is 5 x 72?",
         "code": "for i in range(5):\n    forward(40)\n    left(72)\n"
       },
@@ -329,7 +329,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A loop can be inside another loop. The inside loop runs all its rounds in each round of the outside loop.\n\nWatch how many times `forward(30)` runs in all. Count fast.",
+        "text": "A loop can hold any lines, and that includes another loop. A loop in a loop is a *nested loop*. The *inner loop* runs all its rounds in each round of the *outer loop*.\n\nPython uses the indent to tell them apart. Here the outer loop has 4 spaces, and the lines of the inner loop have 8. The inner loop draws one triangle, and the line `forward(40)` moves the turtle on before the next one. Click Next and count how many times `forward(30)` runs.",
         "look": "Look for: how many times does `forward(30)` run in all?",
         "code": "for n in range(2):\n    for i in range(3):\n        forward(30)\n        left(120)\n    forward(40)\n"
       },
@@ -361,7 +361,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "`def` makes your own command, called a function. Python remembers it, but does not run it yet. It runs only when you call it.\n\nWatch when line 2 runs: at the `def`, or at the call?",
+        "text": "Remember *functions*? You called `forward` and `left`. Now you will make your own. `def corner():` *defines* a function named `corner`: a short name for a group of lines.\n\nThe rules: `def`, the name, `()`, and a colon. The lines of the function are indented by 4 spaces. Defining a function does not run it. Python only remembers it. The lines run when you *call* it: `corner()`. Click Next and watch when the lines inside `corner` run.",
         "look": "Look for: does line 2 run at `def`, or at the call?",
         "code": "def corner():\n    forward(50)\n    left(90)\n\ncorner()\ncorner()\n"
       },
@@ -393,7 +393,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A function can take a value. In `def line(length):`, `length` is a parameter: a box that gets the value from the call.\n\nWatch what is in `length` at each call.",
+        "text": "A function is more useful when it can take an *argument*, like `forward(50)` does. To get an argument, the function needs a *parameter*: a variable name between its brackets.\n\nIn `def line(length):`, `length` is the parameter. The call `line(20)` puts 20 into `length`, and then the lines of the function run. The next call, `line(40)`, puts 40 in. Same function, new value. Click Next and watch the value of `length` at each call.",
         "look": "Look for: what is in `length` at each call?",
         "code": "def line(length):\n    forward(length)\n    left(90)\n\nline(20)\nline(40)\n"
       },
@@ -425,7 +425,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A function can also give a value back. `return` sends the value back to the line that called the function.\n\nWatch what `half(100)` gives back.",
+        "text": "A function can also give a value back to the code that called it. It does that with `return`. The value it gives back is the *return value*.\n\n`half(100)` runs the function with `n` = 100, and `return n / 2` gives back 50. Python then uses that value in place of the call, so `forward(half(100))` is the same as `forward(50)`. When `return` runs, the function stops at once. Click Next and watch the value come back.",
         "look": "Look for: what does `half(100)` give back?",
         "code": "def half(n):\n    return n / 2\n\nforward(half(100))\n"
       },
@@ -457,7 +457,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Programs can make choices. `if` runs its lines only when a test is True. `else` runs its lines when the test is False.\n\nWatch which round has the pen up.",
+        "text": "Programs can make choices. An `if` statement runs its lines only when a *condition* is true. An `else` part runs when the condition is false.\n\nThe rules: `if`, a condition, and a colon; the lines under it are indented. `else:` lines up with its `if`. Here the condition is `i == 2`. `==` asks \"are these equal?\", while one `=` puts a value in a box. Mixing them up is a classic mistake. Click Next and watch which part runs in each round.",
         "look": "Look for: in which round is the pen up?",
         "code": "for i in range(4):\n    if i == 2:\n        penup()\n    else:\n        pendown()\n    forward(20)\n"
       },
@@ -490,7 +490,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A test gives a boolean: `True` or `False`. `>`, `<` and `==` all make booleans. Note: `==` asks a question, `=` fills a box.\n\nWatch what each `print` shows.",
+        "text": "A condition gives a *boolean*: a value that is either `True` or `False`. Python writes them with a capital letter.\n\nThese *comparisons* make booleans: `>` (bigger than), `<` (smaller than), `==` (equal to), `!=` (not equal to), `>=` and `<=`. You can print a boolean, keep it in a variable, or use it in an `if`. Here `size` is 30, so `size > 20` is `True` and `size == 20` is `False`. Click Next and see what each `print` shows.",
         "look": "Look for: what does each `print` show?",
         "code": "size = 30\nprint(size > 20)\nprint(size == 20)\n"
       },
@@ -524,7 +524,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A `while` loop repeats as long as its test is True. You must change something in the loop, or it never stops. (The site stops it for you, but it is not proud of you.)\n\nWatch what `n` is when the loop stops.",
+        "text": "A `for` loop runs a fixed number of times. A `while` loop is different: it keeps going as long as its condition is true.\n\nPython checks the condition before each round. When it is false, the loop ends. So the loop must change something, like `n = n + 1` here. Else the condition stays true and the loop never stops: an *endless loop*. This loop draws one side for each value of `n`: 0, 1 and 2. Click Next and watch `n` grow until the loop ends.",
         "look": "Look for: what is `n` when the loop stops?",
         "code": "n = 0\nwhile n < 3:\n    forward(30)\n    left(120)\n    n = n + 1\n"
       },
@@ -556,7 +556,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A list holds many values in one box: `[\"red\", \"blue\"]`. A `for` loop can go over each value, one at a time.\n\nWatch how many times the loop runs, and what is in `n` each time.",
+        "text": "A *list* holds many values in one variable. You write it with square brackets and commas: `[\"red\", \"blue\"]`. Each value in the list is an *item*, and the order of the items stays the same.\n\nA `for` loop can go over a list: `for n in names:` runs one round for each item, and puts that item in `n`. So the first round prints `red` and the second prints `blue`. Click Next and watch `n` change.",
         "look": "Look for: how many times does the loop run? What is `n` each time?",
         "code": "names = [\"red\", \"blue\"]\nfor n in names:\n    print(n)\n"
       },
@@ -588,7 +588,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A list can hold data, and each value can make one part of a drawing. That is how a bar chart works.\n\nWatch which part of the drawing each value makes.",
+        "text": "A list is a good place to keep *data*: numbers that the program uses. When the data changes, you change the list, and the code stays the same.\n\nThis loop draws one bar for each number in `data`. The number sets the height: up, across, and down again. The `left` and `right` turns put the turtle back facing right, ready for the next bar. Click Next and watch each value become a bar.",
         "look": "Look for: what part of the drawing does each value make?",
         "code": "data = [20, 40]\nfor d in data:\n    left(90)\n    forward(d)\n    right(90)\n    forward(10)\n    right(90)\n    forward(d)\n    left(90)\n"
       },
@@ -620,7 +620,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Until now you used one turtle with no name. `tracy = Turtle()` makes a turtle object with the name `tracy`.\n\nThen `tracy.forward(60)` moves that turtle. Watch what comes before each command.",
+        "text": "Until now, you gave commands to one turtle with no name. Now we make a turtle *object*. An object is a thing in your program that keeps its own data and has its own functions, called *methods*.\n\n`tracy = Turtle()` makes a new turtle and puts it in a variable named `tracy`. To give that turtle a command, write its name, a dot, then the method: `tracy.forward(60)`. From now on, we always say which turtle moves. Click Next to watch `tracy` draw.",
         "look": "Look for: what comes before each command?",
         "code": "tracy = Turtle()\ntracy.forward(60)\ntracy.left(90)\ntracy.forward(30)\n"
       },
@@ -651,7 +651,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "You can make more than one turtle. Each turtle is its own object, with its own place and its own pen.\n\nWatch which turtle moves at each line.",
+        "text": "The great thing about objects: you can make as many as you like. Each call to `Turtle()` makes a new turtle with its own place, heading and pen.\n\nHere `tracy` and `bob` both start in the middle. A command with `tracy.` moves only `tracy`, and `bob` stays where it is. The name before the dot always says which object does the work. Click Next and watch which turtle moves at each line.",
         "look": "Look for: which turtle moves at each line?",
         "code": "tracy = Turtle()\nbob = Turtle()\ntracy.forward(40)\nbob.left(90)\nbob.forward(40)\n"
       },
@@ -683,7 +683,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "Big programs are made of small parts. Give each part a function, then call the parts in order.\n\nWatch which lines draw the door, and when they run.",
+        "text": "Time for a project. Big programs are made of small parts, and *functions* are how we name the parts. Here, `door()` draws a door. A house will also need a wall and a roof.\n\nNotice the parts of this program: first the turtle object, then the function definition, then the call at the end. Inside `door`, a loop runs 2 times, and each round draws two sides of the rectangle. Click Next and watch when the lines in `door` run.",
         "look": "Look for: which lines draw the door, and when do they run?",
         "code": "tracy = Turtle()\n\ndef door():\n    for i in range(2):\n        tracy.forward(20)\n        tracy.left(90)\n        tracy.forward(40)\n        tracy.left(90)\n\ndoor()\n"
       },
@@ -726,7 +726,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "`tracy.circle(30)` draws a circle. If you turn between circles, they make a pattern.\n\nWatch where each circle starts.",
+        "text": "`tracy.circle(30)` draws a circle with a *radius* of 30. The radius is the distance from the middle of the circle to its edge. The turtle walks the circle to its left and stops where it started.\n\nIf you turn between circles, the next circle points another way. Turn a bit after each circle, again and again, and you get a pattern. Here there are only 2 circles with a turn of 90 between them. Click Next and watch where each circle starts.",
         "look": "Look for: where does each circle start?",
         "code": "tracy = Turtle()\ntracy.circle(30)\ntracy.left(90)\ntracy.circle(30)\n"
       },
@@ -758,7 +758,7 @@ export const LESSONS = [
     "steps": [
       {
         "kind": "watch",
-        "text": "A box that grows a little each round makes a spiral.\n\nWatch how `side` changes each round.",
+        "text": "A variable that changes in each round of a loop can make a pattern grow. This program uses a variable, a loop and a turtle object together.\n\n`side` starts at 10. In each round, the turtle walks `side`, turns, and then `side = side + 10` makes the next line longer. The turn of 120 would make a triangle, but because the sides grow, the lines never close: you get a spiral. Click Next and watch `side` grow.",
         "look": "Look for: how does `side` change each round?",
         "code": "tracy = Turtle()\nside = 10\nfor i in range(8):\n    tracy.forward(side)\n    tracy.left(120)\n    side = side + 10\n"
       },
