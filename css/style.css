@@ -139,6 +139,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 .hero .words { max-width: 560px; }
 .hero h2 { font-size: 30px; margin: 0 0 6px; text-transform: none; letter-spacing: 0; color: var(--ink); }
 .hero p { font-size: 18px; margin: 0 0 10px; color: #3b4252; }
+.hero p.intro { margin-top: 16px; }
 .hero .cta { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .hero svg { max-width: 100%; height: auto; }
 .btn { font: 600 16px system-ui; display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); text-decoration: none; }
