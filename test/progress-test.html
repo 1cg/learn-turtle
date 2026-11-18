@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Progress test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}</style>
+</head>
+<body>
+<h1>Progress test</h1>
+<div id="log">running...</div>
+<script type="module">
+import { collect, encode, decode, merge } from "../js/progress.js";
+import { LESSONS } from "../lessons/lessons.js";
+
+const log = document.getElementById("log");
+log.textContent = "";
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+
+// A fake storage, same shape as `store` in js/lessons.js.
+const mem = (init = {}) => { const m = new Map(Object.entries(init)); return { get: (k) => m.has(k) ? m.get(k) : null, set: (k, v) => m.set(k, String(v)), m }; };
+const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const L = LESSONS;
+const [a, b, c] = L;
+
+const cases = [];
+const test = (name, fn) => cases.push([name, fn]);
+
+test("collect: done and real code, skip starter and empty", () => {
+  const s = mem({
+    ["lt:done:" + a.id]: "1", ["lt:code:" + a.id]: a.solution,
+    ["lt:code:" + b.id]: b.starter, ["lt:code:" + c.id]: "  \n",
+    "lt:code:free": "forward(1)\n", "lt:done:nope": "1",
+  });
+  return eq(collect(s, L), { v: 1, done: [a.id], code: { [a.id]: a.solution } });
+});
+
+test("encode then decode gives the same progress", async () => {
+  const p = { v: 1, done: [a.id, b.id], code: { [a.id]: "forward(100)  # é ü 🐢\n" } };
+  return eq(await decode(await encode(p)), p);
+});
+
+test("encode gives base64url only", async () => /^[A-Za-z0-9_-]+$/.test(await encode({ v: 1, done: [], code: {} })));
+
+test("merge: done adds up, never removes", () => {
+  const s = mem({ ["lt:done:" + b.id]: "1" });
+  const r = merge(s, { v: 1, done: [a.id, b.id, "unknown-9"], code: {} }, L);
+  return eq(r, { done: [a.id], code: [] }) && s.get("lt:done:" + b.id) === "1" && s.get("lt:done:unknown-9") === null;
+});
+
+test("merge: link code goes in where no code or starter only", () => {
+  const s = mem({ ["lt:code:" + b.id]: b.starter });
+  const r = merge(s, { v: 1, done: [], code: { [a.id]: "A\n", [b.id]: "B\n" } }, L);
+  return eq(r, { done: [], code: [a.id, b.id] }) && s.get("lt:code:" + a.id) === "A\n" && s.get("lt:code:" + b.id) === "B\n";
+});
+
+test("merge: code on this computer wins", () => {
+  const s = mem({ ["lt:code:" + a.id]: "mine\n" });
+  const r = merge(s, { v: 1, done: [], code: { [a.id]: "theirs\n" } }, L);
+  return eq(r.code, []) && s.get("lt:code:" + a.id) === "mine\n";
+});
+
+test("merge: starter-only code in the link changes nothing", () => {
+  const s = mem();
+  const r = merge(s, { v: 1, done: [], code: { [a.id]: a.starter } }, L);
+  return eq(r.code, []) && s.get("lt:code:" + a.id) === null;
+});
+
+for (const [name, bad] of [["bad letters", "abc$%"], ["cut short", null], ["not progress", "q1YqUbJSKkktLlGqBQA"], ["empty", ""]]) {
+  test("decode rejects: " + name, async () => {
+    let text = bad;
+    if (text === null) { const full = await encode({ v: 1, done: [a.id], code: { [a.id]: a.solution } }); text = full.slice(0, full.length / 2); }
+    try { await decode(text); return false; } catch (e) { return e instanceof Error && e.message.length > 0; }
+  });
+}
+
+let pass = 0;
+for (const [name, fn] of cases) {
+  let ok = false;
+  try { ok = await fn(); } catch (e) { console.error(name, e); }
+  if (ok) pass++; else console.error("FAIL", name);
+  say(`${ok ? "PASS" : "FAIL"} ${name}`, ok);
+}
+
+// Link length with all lessons done and each solution as code.
+const all = { v: 1, done: L.map((l) => l.id), code: Object.fromEntries(L.map((l) => [l.id, l.solution])) };
+const text = await encode(all);
+const url = "https://learnturtle.org/#p=" + text;
+const json = JSON.stringify(all).length;
+const back = eq(await decode(text), all);
+say(`${back ? "PASS" : "FAIL"} full link: ${L.length} lessons, JSON ${json} chars, link ${url.length} chars`, back);
+if (back) pass++;
+
+const total = cases.length + 1;
+say(`${pass}/${total} pass`, pass === total);
+document.title = `${pass}/${total} pass`;
+window.RESULT = { pass, total, linkLength: url.length, jsonLength: json };
+</script>
+</body>
+</html>

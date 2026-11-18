@@ -51,6 +51,23 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 - `localStorage` keys: `lt:code:<id>` (code, `free` for free draw), `lt:done:<id>` ("1"), `lt:fold`.
 - All reads and writes are in try/catch. Without storage the site works but forgets.
 
+## Progress link
+
+- A link moves the progress of a child to another computer. There is no account and no server: the data is in the URL fragment after `#p=`. The browser does not send a fragment to the server.
+- The link holds the done lessons and the code of each lesson. It does not hold free draw code.
+- `js/progress.js` has pure functions (no DOM). `storage` is an object with `get(key)` and `set(key, value)`, as `store` in `js/lessons.js`.
+  - `collect(storage, lessons)` gives `{v: 1, done: [id, ...], code: {id: code}}`. It skips code that is empty or the same as the starter.
+  - `encode(progress)` gives the text after `#p=`: JSON, deflate-raw (`CompressionStream`), then base64url with no padding.
+  - `decode(text)` reverses `encode`. If the text is bad, it throws an `Error` with a plain message.
+  - `merge(storage, progress, lessons)` changes `storage` and gives `{done: [id, ...], code: [id, ...]}`: the lessons it marked done and the lessons whose code it wrote.
+- Merge rules:
+  - Done adds up. The merge never removes a done mark.
+  - Code from the link goes in only if this computer has no code for the lesson, or only the starter. Else the code on this computer stays.
+  - The merge ignores lesson ids that are not in `lessons`.
+- The UI (buttons, `mailto`, reading `#p=` at start) is card-16.
+- `test/progress-test.html` tests the functions and shows the link length with all 24 solutions as code.
+- Link length (2026-11-18): all 24 lessons done with each solution as code is 2988 characters of JSON and a 1062-character link. Real child code is longer than a solution, so a link can be some thousand characters.
+
 ## Lesson format
 
 `{ id, unit, title, concept, text, task, starter, solution, hints, example, objects }`. In `text`, `task` and `hints`, only `` `code` `` is formatted. `?fixture` in the URL loads `test/lessons-fixture.js` instead of the real lessons.
