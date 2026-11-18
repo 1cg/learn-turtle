@@ -3,7 +3,7 @@
 ## Intent
 
 - The public site is https://learnturtle.org on Cloudflare Pages, with HTTPS.
-- The site has no build step. The site files are `index.html`, `css/`, `js/` and `py/`.
+- The site has no build step. The site files are `index.html`, `css/`, `js/`, `py/` and `lessons/`.
 - Only these files go to the server. Docs, tests, `tmp/` and agent files stay local.
 - One command deploys the site: `deploy/deploy.sh`.
 

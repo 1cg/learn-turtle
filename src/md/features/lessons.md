@@ -54,3 +54,20 @@ The engine is built (`js/lessons.js`). The lesson content (`lessons/lessons.js`)
 ## Lesson format
 
 `{ id, unit, title, concept, text, task, starter, solution, hints, example, objects }`. In `text`, `task` and `hints`, only `` `code` `` is formatted. `?fixture` in the URL loads `test/lessons-fixture.js` instead of the real lessons.
+
+## Lesson file
+
+- `lessons/lessons.js` is `export const LESSONS = [...];` with a JSON body (keys in double quotes, no comments). A Python test reads it with `json`.
+- The `id` is `<topic>-<n>`, for example `variables-1`. Do not change an `id`: progress and code in `localStorage` use it.
+- `objects` is `true` from unit 11 on.
+- `starter` can have an error on purpose (unit 2). `solution` and `example` must run with no error.
+- `solution` must draw at least one line: the check compares lines only.
+
+## Lesson test
+
+`python3 test/test_lessons.py` runs every `solution`, `example` and `starter` with `py/tracer.py` in CPython. It also checks:
+
+- the fields and the unique `id`s,
+- no `Turtle()` before unit 11, and no global turtle calls from unit 11 on,
+- each `solution` draws a line, and each `starter` is not the `solution`.
+

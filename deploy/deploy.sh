@@ -4,7 +4,7 @@ set -eu
 
 PROJECT=learn-turtle
 WRANGLER=wrangler@4.150.0
-FILES="index.html css js py"
+FILES="index.html css js py lessons"
 
 cd "$(git rev-parse --show-toplevel)"
 
