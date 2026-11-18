@@ -91,6 +91,16 @@ export class Renderer {
       this.path(opts.ghost.pts);
       g.setLineDash([]);
     }
+    // Arc that shows the last turn: from the old heading to the new one.
+    if (opts.turn) {
+      const c = opts.turn, a = c.after;
+      const h1 = (a.h * Math.PI) / 180, h0 = h1 - (c.by * Math.PI) / 180;
+      g.strokeStyle = "#e0b400";
+      g.lineWidth = 3;
+      g.beginPath();
+      g.arc(a.x, a.y, 26, Math.min(h0, h1), Math.max(h0, h1));
+      g.stroke();
+    }
     for (const t of turtlesAt(cmds, n)) {
       if (t.visible) this.drawTurtle(t, t.t === opts.active);
     }

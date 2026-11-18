@@ -7,7 +7,7 @@ let py = null;
 async function boot() {
   py = await loadPyodide({ indexURL: PYODIDE_URL });
   const base = new URL("../py/", self.location.href);
-  for (const name of ["turtle.py", "tracer.py"]) {
+  for (const name of ["turtle.py", "explain.py", "tracer.py"]) {
     const src = await (await fetch(new URL(name, base))).text();
     py.FS.writeFile("/home/pyodide/" + name, src);
   }

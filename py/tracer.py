@@ -117,5 +117,12 @@ def run(code):
         sys.settrace(None)
         sys.stdout = old_out
     # Steps for module return / exception noise at the end are fine to keep.
+    try:
+        import explain
+        texts = explain.explain(code, steps, _t._cmds, out.getvalue())
+    except Exception:
+        texts = [None] * len(steps)
+    for step, text in zip(steps, texts):
+        step["say"] = text
     return json.dumps({"steps": steps, "cmds": _t._cmds, "out": out.getvalue(),
                        "error": error})

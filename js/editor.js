@@ -152,7 +152,10 @@ export async function createEditor(el, value) {
   const stops = ed.createDecorationsCollection([]);
   const stopDeco = { isWholeLine: false, glyphMarginClassName: "stop-sign", glyphMarginHoverMessage: { value: "Stop sign: the program pauses here" }, stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges };
   const stopLines = () => stops.getRanges().map((r) => r.startLineNumber);
-  const setStops = (lines) => stops.set([...new Set(lines)].map((n) => ({ range: new monaco.Range(n, 1, n, 1), options: stopDeco })));
+  const setStops = (lines) => {
+    stops.set([...new Set(lines)].map((n) => ({ range: new monaco.Range(n, 1, n, 1), options: stopDeco })));
+    api.onStopsChange(stopLines());
+  };
   const T = monaco.editor.MouseTargetType;
   ed.onMouseDown((e) => {
     if (e.target.type !== T.GUTTER_GLYPH_MARGIN && e.target.type !== T.GUTTER_LINE_NUMBERS) return;
@@ -160,7 +163,6 @@ export async function createEditor(el, value) {
     if (!model.getLineContent(n).trim()) return;
     const lines = stopLines();
     setStops(lines.includes(n) ? lines.filter((x) => x !== n) : [...lines, n]);
-    api.onStopsChange(stopLines());
   });
 
   // ---- debugger line marks ----

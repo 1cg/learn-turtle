@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Debugger test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}</style>
+</head>
+<body>
+<h1>Debugger test</h1>
+<div id="log">loading Python...</div>
+<script type="module">
+import { Runner } from "../js/runner.js";
+import { Stepper } from "../js/debugger.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+const runner = new Runner(() => {});
+const rec = async (code) => new Stepper(await runner.run(code));
+
+const SQ = "def square(size):\n    for i in range(4):\n        forward(size)\n        left(90)\n\ncolor('blue')\nsquare(50)\nn = 3\n";
+const cases = [
+  ["first step is the def line", async () => { const s = await rec(SQ); s.next(); const v = s.view(); return v.ran === 1 && v.next === 6 && v.say.startsWith("remember"); }],
+  ["skip jumps over the call", async () => {
+    const s = await rec(SQ); s.go(2); if (!s.canSkip()) return false; s.skip();
+    const v = s.view(); return v.ran === 7 && v.next === 8 && v.say.startsWith("square is done") && v.cmdN === s.rec.cmds.length - 0;
+  }],
+  ["frames inside call", async () => {
+    const s = await rec(SQ); s.go(5); const v = s.view();
+    return v.frames.length === 2 && v.frames[1].name === "square" && v.frames[1].vars.size.repr === "50";
+  }],
+  ["stop sign pauses before line", async () => {
+    const s = await rec(SQ); s.toStop(new Set([4])); const v = s.view(); const first = s.pos;
+    s.toStop(new Set([4])); return v.next === 4 && s.pos > first && s.view().next === 4;
+  }],
+  ["back undoes drawing", async () => {
+    const s = await rec(SQ); s.go(6); const n1 = s.view().cmdN; s.back(); s.back(); return s.view().cmdN < n1;
+  }],
+  ["end has error and line", async () => {
+    const s = await rec("forward(5)\nfoward(5)\n"); s.go(s.last); const v = s.view();
+    return v.error && v.error.line === 2 && v.say.startsWith("Python stops");
+  }],
+  ["syntax error has no steps", async () => { const s = await rec("for i in range(3)\n  pass\n"); return s.steps.length === 0 && s.rec.error.type === "SyntaxError"; }],
+  ["ghost shows next move", async () => { const s = await rec("forward(50)\nleft(90)\n"); const v = s.view(); return v.ghost && v.ghost.op === "move"; }],
+];
+
+let pass = 0;
+log.textContent = "";
+for (const [name, fn] of cases) {
+  let ok = false;
+  try { ok = await fn(); } catch (e) { console.error(e); }
+  if (ok) pass++; else console.error("FAIL", name);
+  say(`${ok ? "PASS" : "FAIL"} ${name}`, ok);
+}
+say(`${pass}/${cases.length} pass`, pass === cases.length);
+console.warn(`SUMMARY ${pass}/${cases.length} pass`);
+</script>
+</body>
+</html>
