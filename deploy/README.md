@@ -8,7 +8,9 @@ Intent and details: `src/md/infrastructure/hosting.md`.
 2. Make an API token: My Profile > API Tokens > Create Token > Custom token.
 3. Give it one permission: Account > Cloudflare Pages > Edit. Limit it to your account.
 4. Give the token and the account ID to the agent through Mr Klanky (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`).
-5. Make the project once: `npx -y wrangler@4.150.0 pages project create learn-turtle --production-branch main`.
+5. Make the project once: `npx -y wrangler@4.150.0 pages project create learn-turtle --production-branch main --force`.
+   Without `--force`, wrangler tries to make a Workers project and fails. Use `--force` only for this one command.
+6. Set Browser Cache TTL to "Respect Existing Headers": https://dash.cloudflare.com/?to=/:account/learnturtle.org/caching/configuration
 
 ## Each deploy
 

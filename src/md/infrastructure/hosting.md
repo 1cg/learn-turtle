@@ -22,6 +22,8 @@
 - The deploy uses direct upload, not Git integration. The repo has no remote.
 - Uncommitted changes do not deploy. Commit first. The script stops if the site files have changes.
 - `_headers` must be at the root of the uploaded folder. Cloudflare reads it there.
-- Pages sets an ETag on each file. The browser checks it again, so a new deploy shows at the next load. `_headers` does not change caching.
+- Pages sends `Cache-Control: max-age=0, must-revalidate` and an ETag. The browser checks each file again, so a new deploy shows at the next load.
+- The zone setting Browser Cache TTL must be "Respect Existing Headers". With the default (4 h), the browser keeps old JS with a new `index.html`, and the page breaks (card-15).
+- Check it after a change: `curl -sI https://learnturtle.org/js/app.js` must show `max-age=0`.
 - The site has no CSP yet. Monaco and Pyodide load from cdn.jsdelivr.net and make workers. A CSP needs a test in the browser first.
 - The custom domain needs the domain in the same Cloudflare account (card-8).
