@@ -16,13 +16,6 @@ const PAUSE_ICON = "M7 5h4v14H7zM13 5h4v14h-4z";
 
 const editor = await createEditor($("editor"), STARTER);
 
-// Variables dropdown in the toolbar. Made here, not in index.html (card-10 owns that file now).
-$("frames")?.closest(".panel")?.remove();
-$("bExplain").insertAdjacentHTML("beforebegin",
-  '<button id="bVars" class="varsbtn" title="Variables" aria-expanded="false"><span class="xeq">x=</span><span class="cnt" id="varCount">0</span>' +
-  '<svg viewBox="0 0 24 24"><path d="M5 8l7 8 7-8z" fill="currentColor"/></svg></button>');
-document.querySelector(".codepanel").insertAdjacentHTML("beforeend", '<div class="varspop" id="varsPop" hidden></div>');
-document.querySelector(".codepanel").style.position = "relative";
 const renderer = new Renderer($("cv"));
 
 let stepper = null;     // recording of the current code, or null after an edit

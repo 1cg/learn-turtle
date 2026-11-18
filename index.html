@@ -9,12 +9,33 @@
 <body>
 <header>
   <h1>Learn Turtle</h1>
+  <div class="lnav" id="lnav" hidden>
+    <button id="lPrev" title="Last lesson"><svg viewBox="0 0 24 24"><path d="M16 5v14L5 12z" fill="currentColor"/></svg></button>
+    <span class="ltitle" id="lTitle"></span>
+    <button id="lNext" title="Next lesson"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+    <span class="dots" id="lDots"></span>
+  </div>
   <span class="spacer"></span>
   <span class="status" id="status">Loading Python...</span>
+  <a class="modelink" id="modeLink" href="#" hidden></a>
 </header>
 
 <main>
   <section class="left">
+    <div class="panel lesson" id="lesson" hidden>
+      <h2><span id="lConcept"></span><span class="fold" id="lFold">hide</span></h2>
+      <div class="lbody" id="lBody">
+        <p id="lText"></p>
+        <div class="task" id="lTask"></div>
+        <div class="acts">
+          <button id="lHint">Hint</button>
+          <button id="lExample">Watch an example</button>
+          <button id="lReset">Reset code</button>
+        </div>
+        <div class="hints" id="lHints"></div>
+      </div>
+    </div>
+
     <div class="panel codepanel">
       <div class="controls">
         <button id="bStart" title="Start over"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z" fill="currentColor"/></svg></button>
@@ -24,12 +45,14 @@
         <button id="bToStop" title="Go to the next stop sign (click a line number to add one)"><svg viewBox="0 0 24 24"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" fill="#d93025"/></svg></button>
         <button id="bPlay" title="Play / pause (Cmd+Enter)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
         <span class="spacer"></span>
+        <button id="bVars" class="varsbtn" title="Variables" aria-expanded="false"><span class="xeq">x=</span><span class="cnt" id="varCount">0</span><svg viewBox="0 0 24 24"><path d="M5 8l7 8 7-8z" fill="currentColor"/></svg></button>
         <button id="bExplain" aria-pressed="true" title="Explanations on / off"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H9l-5 4z" fill="currentColor"/></svg></button>
         <select id="speed" title="Play speed" aria-label="Play speed">
           <option value="0.5">0.5x</option><option value="1">1x</option><option value="2" selected>2x</option><option value="4">4x</option><option value="20">max</option>
         </select>
       </div>
       <div id="editor" aria-label="Code"></div>
+      <div class="varspop" id="varsPop" hidden></div>
     </div>
     <div class="panel turtles" id="turtles"></div>
   </section>
@@ -38,13 +61,10 @@
     <div class="panel">
       <canvas id="cv"></canvas>
       <div class="canvasbar"><span class="coords" id="coords"></span><label class="check"><input id="grid" type="checkbox" checked> Grid</label></div>
+      <div class="badge" id="lBadge" hidden></div>
     </div>
     <div class="panel error" id="error" hidden><div id="errText"></div><div class="raw" id="errRaw"></div></div>
     <div class="panel warn" id="warn" hidden>This program uses <code>forward()</code> and also <code>name.forward()</code>. Pick one style. To use many turtles, say which turtle moves: <code>tracy.forward(50)</code>.</div>
-    <div class="panel">
-      <h2>Boxes (variables)</h2>
-      <div class="frames" id="frames"></div>
-    </div>
     <div class="panel out" id="outBox" hidden><h2>Printed</h2><div id="out"></div></div>
   </section>
 </main>

@@ -1,5 +1,5 @@
 // Lesson track: header nav, lesson strip above the code, goal drawing, check, progress.
-// The page markup is made here, because index.html is on another card now (see card-14).
+// The markup is in index.html.
 import { drawnPaths, compare, verdict } from "./check.js";
 
 const store = {
@@ -19,31 +19,6 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
   } catch {
     LESSONS = []; // no lessons yet: free draw only
   }
-
-  // ---- markup ----
-  document.querySelector("header h1").insertAdjacentHTML("afterend", `
-    <div class="lnav" id="lnav" hidden>
-      <button id="lPrev" title="Last lesson"><svg viewBox="0 0 24 24"><path d="M16 5v14L5 12z" fill="currentColor"/></svg></button>
-      <span class="ltitle" id="lTitle"></span>
-      <button id="lNext" title="Next lesson"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
-      <span class="dots" id="lDots"></span>
-    </div>`);
-  $("status").insertAdjacentHTML("afterend", '<a class="modelink" id="modeLink" href="#"></a>');
-  document.querySelector(".codepanel").insertAdjacentHTML("beforebegin", `
-    <div class="panel lesson" id="lesson" hidden>
-      <h2><span id="lConcept"></span><span class="fold" id="lFold">hide</span></h2>
-      <div class="lbody" id="lBody">
-        <p id="lText"></p>
-        <div class="task" id="lTask"></div>
-        <div class="acts">
-          <button id="lHint">Hint</button>
-          <button id="lExample">Watch an example</button>
-          <button id="lReset">Reset code</button>
-        </div>
-        <div class="hints" id="lHints"></div>
-      </div>
-    </div>`);
-  document.querySelector(".canvasbar").insertAdjacentHTML("afterend", '<div class="badge" id="lBadge" hidden></div>');
 
   // ---- state ----
   let cur = null;          // current lesson, or null in free draw
