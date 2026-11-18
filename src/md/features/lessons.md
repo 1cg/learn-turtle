@@ -33,8 +33,8 @@ The engine is `js/lessons.js`. The content is `lessons/lessons.js`.
 ## Engine
 
 - The URL hash picks the view: `#home` (or no hash), `#free`, `#lesson=<id>`, `#lesson=<id>&step=<n>`, `#p=<progress>`.
-- Without `&step`, a lesson opens at its first step that is not done.
-- The strip above the code shows the concept, the step pills (Watch, Try, Extend), the text, and the actions of the step. "hide" folds the strip.
+- Without `&step`, a lesson always opens at its first step (Watch), also when the child did it before. The human asked for this: the idea comes first, and a repeat is a review.
+- The strip above the code starts with one centered line: "Learn - Try - Do" (the human chose this over numbered pills, and named the `watch` step "Learn"). The `extend` kind shows as "Do", a second one as "Do more". Done steps are green, the current step is underlined. "hide" folds the strip.
 - Watch: the editor is read only and shows the step `code`. A purple "Look for" box asks one question. "seen N of M steps" counts the debugger steps. "Your turn" opens when the run reaches its end (also at an error in an error lesson). Then the watch step is done.
 - Try and Extend: the editor is the child's. The goal shows under the drawing. A green bar marks lines that differ from the start code. "Watch again" goes back to the watch step. "Reset code" (two clicks, no browser dialog) goes back to the start code.
 - Start code: try = the watch code (or `starter`); extend = the child's saved code of the step before (or the solution before). `startCode` in `js/progress.js` is the rule without the saved code.
@@ -75,16 +75,17 @@ The engine is `js/lessons.js`. The content is `lessons/lessons.js`.
 { id, unit, title, concept, objects,
   steps: [
     { kind: "watch", text, look, code, expectError? },
-    { kind: "try", text, task, solution, hints, starter? },
-    { kind: "extend", text, task, solution, hints },
+    { kind: "try", text, solution, hints, starter? },
+    { kind: "extend", text, solution, hints },
   ] }
 ```
 
+- `text` is 2 to 4 short sentences: first the idea in plain words, then the problem. A blank line (`\n\n`) splits paragraphs. There is no separate `task` (the human asked for the task inside the prose).
 - `watch`: `code` runs read only in the debugger. `look` is one question that starts with "Look for:". There is no check and no goal. `expectError: true` marks a watch that shows an error on purpose (unit 2).
 - `try`: the starter is the watch `code`. Give `starter` only if it must be different. The task changes the watch code. The goal is the drawing of `solution`.
 - `extend`: the engine starts it from the child's own code of the step before. The task builds on that code, and `solution` extends the solution of the step before.
 - Most lessons have watch, try, extend. Error lessons: the watch shows the error, the try fixes it. Projects can have 2 extends.
-- In `text`, `task`, `look` and `hints`, only `` `code` `` is formatted.
+- In `text`, `look` and `hints`, only `` `code` `` and `*italic*` are formatted.
 - `?fixture` in the URL loads `test/lessons-fixture.js` instead of the real lessons.
 
 ## Lesson file

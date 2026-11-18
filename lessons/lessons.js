@@ -5,12 +5,12 @@ export const LESSONS = [
     "id": "calls-1",
     "unit": 1,
     "title": "First steps",
-    "concept": "A program is steps in order",
+    "concept": "Programs",
     "objects": false,
     "steps": [
       {
         "kind": "watch",
-        "text": "A program is a list of steps. Python does them in order, from the top line to the bottom line.\n\nHere is a program with one step. `forward(50)` tells the turtle to walk 50 steps. Press Next and watch it go.",
+        "text": "First things first: let's learn what a *program* is. A program is a set of steps for a computer to *execute*, typically one instruction after the other. We are going to be looking at instructions written in *Python*, a widely used programming language. In order to have some fun as we learn, we are going to use *turtle*, a library for drawing based on a simple concept: a turtle moves around on the screen, drawing things as he goes.\n\nWe will start out by calling a *function*. A function is a way to collect a bit of logic into a single place so it can be *called* from other places. Here we are calling a function forward() and passing it an *argument*. Functions in Python take arguments between the () and use commas to separate arguments if we want to pass more than one. Functions have a specific number of arguments they expect. In this case, forward() expects 1 argument: how far to move forward. Try clicking next to see it execute.",
         "look": "Look for: how far does the turtle move?",
         "code": "forward(50)\n"
       },

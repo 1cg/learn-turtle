@@ -5,7 +5,7 @@ The home page is the first page. It shows when the URL has no hash or `#home`.
 ## Parts
 
 - Hero: a heading, two short paragraphs, the turtle with a speech bubble, and the buttons. All are centered, with the words above the turtle (the human asked for this).
-- Main button: "Start lesson 1" for a new child. After that: "Go on: Lesson N, Title" for the first lesson that is not done.
+- Main button: "Let's Get Started!" (the human's words). It opens the first lesson that is not done. The "Next" tag on the map shows which lesson that is.
 - "Free draw" opens the editor with no lesson (`#free`).
 - Progress buttons show only when the child has progress: "Email me my progress" and "Copy my progress link".
 - Lesson map: one row per unit. Each lesson is a tile with its number, its title and a small picture of the goal of its last step. A done lesson has a check mark. The first lesson that is not done has a "Next" tag.

@@ -9,13 +9,30 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* private mode: no saving */ } },
 };
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-// Short lesson text: `code` becomes <code>. Nothing else.
-const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+// Short lesson text: `code` becomes <code>, *word* becomes <em>. Nothing else.
+const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
 const $ = (id) => document.getElementById(id);
 
+// Short words under each unit name on the home page. Placeholder text: the human writes the final words.
+const UNIT_NOTES = {
+  1: "Learn the basics of turtle: how to move around the screen and draw, etc.",
+  2: "Read an error message and fix the line.",
+  3: "Notes in your code that Python skips.",
+  4: "Boxes with names that hold values.",
+  5: "Numbers and text are not the same thing.",
+  6: "Repeat lines with `for`.",
+  7: "Make your own commands with `def`.",
+  8: "Pick what runs with `if` and `else`.",
+  9: "Repeat while a test is True.",
+  10: "Keep many values in one box.",
+  11: "More than one turtle, each with a name.",
+  12: "Put it all together.",
+};
 const UNITS = { 1: "Steps", 2: "Errors", 3: "Comments", 4: "Variables", 5: "Types", 6: "Loops", 7: "Functions",
   8: "If", 9: "While", 10: "Lists", 11: "Objects", 12: "Projects" };
-const KIND = { watch: "Watch", try: "Try", extend: "Extend" };
+const KIND = { watch: "Learn", try: "Try", extend: "Do" }; // labels the child sees; the data keeps "watch"
+// Step names: a second "extend" step is "Do more".
+const stepName = (l, i) => l.steps[i].kind === "extend" && l.steps.slice(0, i).some((x) => x.kind === "extend") ? "Do more" : KIND[l.steps[i].kind] || l.steps[i].kind;
 
 export async function initLessons({ editor, runner, renderer, play, forget, freeStarter }) {
   const fixture = new URLSearchParams(location.search).has("fixture");
@@ -30,7 +47,7 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
   let cur = null;      // lesson, or null
   let si = 0;          // step index
   let goal = null;     // goal polylines of the step
-  let seenMax = -1;    // furthest debugger step seen in a watch step
+  let lastOk = false;  // the last run of this step matched the goal
   let hintsShown = 0;
   const goals = new Map();
   const step = () => cur && cur.steps[si];
@@ -92,50 +109,43 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     $("lOf").textContent = `Lesson ${index() + 1} of ${LESSONS.length}, ${UNITS[cur.unit] || ""}`;
   }
 
+  // One centered line: Watch - Try - Do. Done steps are green, the current step is bold.
   function renderSteps() {
     $("lSteps").innerHTML = cur.steps.map((st, i) => {
       const cls = i === si ? "now" : stepDone(cur, i) ? "done" : "";
-      const n = stepDone(cur, i) && i !== si ? "&#10003;" : i + 1;
-      return (i ? '<span class="line"></span>' : "") +
-        `<button class="${cls}" data-i="${i}"><span class="n">${n}</span>${KIND[st.kind] || st.kind}</button>`;
+      return (i ? '<span class="sep">-</span>' : "") +
+        `<button class="${cls}" data-i="${i}"${i === si ? ' aria-current="step"' : ""}>${stepName(cur, i)}</button>`;
     }).join("");
   }
+
 
   function renderStrip() {
     const st = step();
     $("lConcept").textContent = cur.concept || cur.title;
     renderSteps();
-    $("lText").innerHTML = md(st.text);
+    // Prose: the step text, then the task (until all lessons fold the task into the text).
+    const prose = [st.text, st.task].filter(Boolean).join("\n\n");
+    $("lText").innerHTML = prose.split(/\n\n+/).map((p) => `<p>${md(p)}</p>`).join("");
     const watch = st.kind === "watch";
     $("lLook").hidden = !watch || !st.look;
     $("lLook").innerHTML = md(st.look);
-    $("lTask").hidden = watch;
-    $("lTask").innerHTML = "<b>Task:</b> " + md(st.task);
-    $("lSeen").hidden = !watch;
-    $("lTurn").hidden = !watch || si + 1 >= cur.steps.length;
-    $("lWatch").hidden = watch || !cur.steps.some((x) => x.kind === "watch");
-    $("lReset").hidden = watch;
-    $("lReset").textContent = st.kind === "extend" ? "Reset to my last step" : "Reset code";
+    // More menu: hint, watch the example again, reset.
+    $("bMore").hidden = false;
+    $("mWatch").hidden = watch || !cur.steps.some((x) => x.kind === "watch");
+    $("mReset").hidden = watch;
+    $("mReset").textContent = st.kind === "extend" ? "Reset to my code from the last step" : "Reset code";
     hintsShown = 0;
+    lastOk = false;
     renderHints();
-    renderSeen();
     setFold(store.get("lt:fold") === "1");
   }
 
   function renderHints() {
     const hints = step().hints || [];
     $("lHints").innerHTML = hints.slice(0, hintsShown).map((h) => `<div class="hint">${md(h)}</div>`).join("");
-    $("lHint").hidden = !hints.length;
-    $("lHint").disabled = hintsShown >= hints.length;
-    $("lHint").textContent = hintsShown >= hints.length ? "No more hints" : `Hint (${hintsShown + 1} of ${hints.length})`;
-  }
-
-  function renderSeen(stepper) {
-    if (!cur || step().kind !== "watch") return;
-    const total = stepper ? stepper.steps.length : 0;
-    const seen = Math.max(0, seenMax + 1);
-    $("lSeen").textContent = total ? `seen ${Math.min(seen, total)} of ${total} steps` : "Press Next to start";
-    $("lTurn").disabled = !(stepDone(cur, si));
+    $("mHint").hidden = !hints.length;
+    $("mHint").disabled = hintsShown >= hints.length;
+    $("mHint").textContent = hintsShown >= hints.length ? "No more hints" : `Hint (${hintsShown + 1} of ${hints.length})`;
   }
 
   function setFold(folded) {
@@ -149,11 +159,22 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     if (!text) { b.hidden = true; return; }
     b.hidden = false;
     b.className = "badge " + (ok ? "yes" : "no");
-    let next = "";
-    if (ok && si + 1 < cur.steps.length) next = ` <a href="#lesson=${esc(cur.id)}&step=${si + 1}">Next: ${KIND[cur.steps[si + 1].kind]}</a>`;
-    else if (ok && LESSONS[index() + 1]) next = ` <a href="#lesson=${esc(LESSONS[index() + 1].id)}">Next lesson: ${esc(LESSONS[index() + 1].title)}</a>`;
-    else if (ok) next = ' <a href="#home">All lessons</a>';
-    b.innerHTML = esc(text) + next;
+    b.textContent = text;
+  }
+
+  // The way forward when a run is at its end, for the Next button.
+  function forward(stepper) {
+    if (!cur) return null;
+    const st = step();
+    const ready = st.kind === "watch" ? stepper.atEnd() : lastOk;
+    if (!ready) return null;
+    if (si + 1 < cur.steps.length) {
+      const label = st.kind === "watch" ? "Your turn" : `Next: ${stepName(cur, si + 1)}`;
+      return { label, go: () => { location.hash = `lesson=${cur.id}&step=${si + 1}`; } };
+    }
+    const nextLesson = LESSONS[index() + 1];
+    if (nextLesson) return { label: "Next lesson", go: () => { location.hash = "lesson=" + nextLesson.id; } };
+    return { label: "All lessons", go: () => { location.hash = "home"; } };
   }
 
   // ---- home ----
@@ -165,14 +186,14 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     if (!LESSONS.length) { start.hidden = true; }
     else if (!next) { start.textContent = "All lessons done! Pick one"; start.href = "#lesson=" + LESSONS[0].id; }
     else {
-      start.textContent = started ? `Go on: Lesson ${LESSONS.indexOf(next) + 1}, ${next.title}` : "Start lesson 1";
+      start.textContent = "Let's Get Started!"; // the human's words; the map shows which lesson is next
       start.href = "#lesson=" + next.id;
     }
     $("hProgress").hidden = !started;
     const byUnit = new Map();
     LESSONS.forEach((l, i) => { if (!byUnit.has(l.unit)) byUnit.set(l.unit, []); byUnit.get(l.unit).push([l, i]); });
     $("hMap").innerHTML = [...byUnit].map(([u, ls]) => `
-      <div class="unit"><div class="uname">${u}. ${esc(UNITS[u] || "")}<small>${ls.length} lesson${ls.length > 1 ? "s" : ""}</small></div>
+      <div class="unit"><div class="uname">${u}. ${esc(UNITS[u] || "")}<p class="unote">${md(UNIT_NOTES[u] || "")}</p><small>${ls.length} lesson${ls.length > 1 ? "s" : ""}</small></div>
       <div class="tiles">${ls.map(([l, i]) => `<a class="tile ${isDone(l) ? "done" : l === next ? "next" : ""}" href="#lesson=${esc(l.id)}">` +
         `<canvas data-id="${esc(l.id)}"></canvas><div class="t">${i + 1}. ${esc(l.title)}</div></a>`).join("")}</div></div>`).join("");
     drawThumbs();
@@ -186,7 +207,7 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
       const l = LESSONS.find((x) => x.id === cv.dataset.id);
       if (!thumbs.has(l.id)) {
         const last = [...l.steps].reverse().find((s) => s.solution);
-        thumbs.set(l.id, last ? await goalFor(last.solution) : []);
+        thumbs.set(l.id, last ? (await runner.run(last.solution)).cmds : []);
       }
       if (!document.contains(cv)) continue;
       drawThumb(cv, thumbs.get(l.id));
@@ -194,17 +215,51 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     thumbsBusy = false;
   }
 
-  // Fit the drawing in a small canvas: no grid, no turtle.
-  function drawThumb(cv, paths) {
+  // A small picture of the goal: real colors, a light grid, and the turtle where it ends.
+  function drawThumb(cv, cmds) {
     const r = new Renderer(cv);
-    r.grid = false;
-    const pts = paths.flat();
-    if (!pts.length) return r.draw([], 0, { noDefault: true });
+    const g = r.g;
+    const lines = cmds.filter((c) => (c.op === "move" || c.op === "circle") && c.draw);
+    const turtles = [...new Map(cmds.map((c) => [c.after.t, c.after])).values()].filter((t) => t.visible);
+    const pts = [...lines.flatMap((c) => c.pts), ...turtles.map((t) => [t.x, t.y])];
+    if (!pts.length) pts.push([0, 0]);
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
     const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-    const k = Math.min(3, 330 / Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 1));
-    const after = { t: 0, x: 0, y: 0, h: 0, pen: true, color: "#1d2330", fill: "#1d2330", width: 7, visible: false };
-    r.draw(paths.map((p) => ({ op: "move", draw: true, pts: p.map(([x, y]) => [(x - cx) * k, (y - cy) * k]), after })), paths.length, { noDefault: true });
+    const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 40);
+    const k = Math.min(2.5, 300 / span);
+    g.setTransform(r.dpr, 0, 0, r.dpr, 0, 0);
+    g.fillStyle = "#fff";
+    g.fillRect(0, 0, 400, 400);
+    g.translate(200, 200);
+    g.scale(k, -k);
+    g.translate(-cx, -cy);
+    // light grid every 50 steps, darker axes
+    const x0 = cx - 200 / k, x1 = cx + 200 / k, y0 = cy - 200 / k, y1 = cy + 200 / k;
+    g.lineWidth = 2 / k;
+    g.strokeStyle = "#0000000d";
+    g.beginPath();
+    for (let v = Math.ceil(x0 / 50) * 50; v <= x1; v += 50) { g.moveTo(v, y0); g.lineTo(v, y1); }
+    for (let v = Math.ceil(y0 / 50) * 50; v <= y1; v += 50) { g.moveTo(x0, v); g.lineTo(x1, v); }
+    g.stroke();
+    g.strokeStyle = "#00000022";
+    g.beginPath(); g.moveTo(x0, 0); g.lineTo(x1, 0); g.moveTo(0, y0); g.lineTo(0, y1); g.stroke();
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    for (const c of lines) {
+      g.strokeStyle = c.after.color;
+      g.lineWidth = Math.max(6, c.after.width * 3) / k;
+      r.path(c.pts);
+    }
+    // The turtle keeps the same size on screen, whatever the zoom.
+    for (const t of turtles) {
+      g.save();
+      g.translate(t.x, t.y);
+      g.scale(2.2 / k, 2.2 / k);
+      g.translate(-t.x, -t.y);
+      const black = /^(black|#000(000)?)$/.test(t.color);
+      r.drawTurtle(black ? { ...t, color: "#3f9a63" } : t, false, 1, false);
+      g.restore();
+    }
   }
 
   async function progressLink() {
@@ -253,7 +308,6 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     cur = l;
     si = Math.max(0, Math.min(l.steps.length - 1, i || 0));
     goal = null;
-    seenMax = -1;
     renderer.goal = null;
     renderer.missing = null;
     badge(null);
@@ -281,6 +335,7 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     badge(null);
     editor.setReadOnly(false);
     editor.setChanged([]);
+    $("bMore").hidden = true;
     editor.setValue(store.get(codeKey()) ?? freeStarter);
     show("free");
     renderHead();
@@ -302,17 +357,14 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     const m = h.match(/lesson=([\w-]*)(?:&step=(\d+))?/);
     if (m) {
       const l = LESSONS.find((x) => x.id === m[1]) || LESSONS.find((x) => !isDone(x)) || LESSONS[0];
-      if (l) return openStep(l, m[2] ? +m[2] : firstOpen(l));
+      // A lesson always opens at its first step (Watch). The human asked for this: Watch first, every time.
+      if (l) return openStep(l, m[2] ? +m[2] : 0);
     }
     if (h === "#free" || !LESSONS.length) return openFree();
     openHome();
   }
 
-  // The first step that is not done yet (or the last step).
-  function firstOpen(l) {
-    const i = l.steps.findIndex((_, k) => !stepDone(l, k));
-    return i < 0 ? l.steps.length - 1 : i;
-  }
+
 
   window.addEventListener("hashchange", () => { homeMsg(""); route(); });
   $("lSteps").onclick = (e) => {
@@ -320,22 +372,32 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     if (b) location.hash = `lesson=${cur.id}&step=${b.dataset.i}`;
   };
   $("lFold").onclick = () => setFold(!$("lBody").hidden);
-  $("lHint").onclick = () => { hintsShown++; renderHints(); };
-  $("lTurn").onclick = () => { location.hash = `lesson=${cur.id}&step=${si + 1}`; };
-  $("lWatch").onclick = () => {
+  // More menu
+  const closeMore = () => { $("morePop").hidden = true; $("bMore").setAttribute("aria-expanded", "false"); };
+  $("bMore").onclick = () => {
+    const open = $("morePop").hidden;
+    $("morePop").hidden = !open;
+    $("bMore").setAttribute("aria-expanded", open);
+  };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMore(); });
+  document.addEventListener("click", (e) => { if (!e.target.closest("#bMore, #morePop")) closeMore(); });
+  $("mHint").onclick = () => { hintsShown++; renderHints(); closeMore(); };
+  $("mWatch").onclick = () => {
+    closeMore();
     const w = cur.steps.findIndex((x) => x.kind === "watch");
     location.hash = `lesson=${cur.id}&step=${w}`;
   };
   let resetArmed = false;
-  $("lReset").onclick = () => {
+  $("mReset").onclick = () => {
     // Two clicks, so a child does not lose code by mistake. No browser dialog.
     if (!resetArmed) {
       resetArmed = true;
-      $("lReset").textContent = "Sure? Click again";
+      $("mReset").textContent = "Sure? Click again";
       setTimeout(() => { resetArmed = false; renderStrip(); }, 3000);
       return;
     }
     resetArmed = false;
+    closeMore();
     editor.setValue(startFor(cur, si));
     renderStrip();
   };
@@ -343,24 +405,26 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
   await route();
 
   // Called by the app before each draw.
-  return function lessonHook(stepper) {
+  function hook(stepper) {
     renderer.missing = null;
     if (!cur || !stepper) { badge(null); return; }
     const st = step();
     if (st.kind === "watch") {
-      seenMax = Math.max(seenMax, stepper.pos);
       if (stepper.atEnd() && !stepDone(cur, si)) { store.set(`lt:done:${cur.id}:${si}`, "1"); renderSteps(); }
-      renderSeen(stepper);
       return;
     }
+    lastOk = false;
     if (!goal || !stepper.atEnd() || stepper.rec.error) { badge(null); return; }
     const r = compare(goal, drawnPaths(stepper.rec.cmds));
+    lastOk = r.ok;
     if (!r.ok) renderer.missing = r.missing;
     if (r.ok && !stepDone(cur, si)) {
       store.set(`lt:done:${cur.id}:${si}`, "1");
       if (cur.steps.every((x, k) => x.kind === "watch" || stepDone(cur, k))) store.set("lt:done:" + cur.id, "1");
       renderSteps();
     }
-    badge(verdict(r), r.ok);
-  };
+    badge(r.ok ? "It matches!" : verdict(r), r.ok);
+  }
+
+  return { hook, next: forward };
 }

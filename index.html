@@ -20,10 +20,10 @@
 <div class="home" id="home" hidden>
   <section class="panel hero">
     <div class="words">
-      <h2>Let's learn Python!</h2>
+      <h2>Let's Learn Turtle!</h2>
     </div>
     <div class="mascot">
-      <div class="bubble">Hi! I go where your code tells me.</div>
+      <div class="bubble">Let's Draw Together!</div>
       <svg viewBox="0 0 240 170" width="400" role="img" aria-label="A friendly turtle with a pencil">
         <path d="M10 150 H 70" stroke="#1565c0" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
         <!-- legs -->
@@ -56,10 +56,10 @@
     </div>
     <div class="words">
       <div class="cta">
-        <a class="btn primary big" id="hStart" href="#lesson=">Start lesson 1</a>
+        <a class="btn primary big" id="hStart" href="#lesson=">Let's Get Started!</a>
         <a class="btn" id="hFree" href="#free">Free draw</a>
       </div>
-      <p class="intro">The turtle does <em>exactly</em> what your code says, and that isn't always what you meant. So you can run your code one step at a time, see what each line does, and back up when the turtle goes somewhere weird.</p>
+      <p class="intro">Learn Python using the famous <i>Turtle</i>&nbsp;library for drawing on a screen.&nbsp; You will learn about variables, loops, conditionals, functions and more, in a simple, fun environment!<br><br>Each lesson starts with a step through example of how turtle works, followed by a coding problem for you.&nbsp; Fun!</p>
       <p class="cap" id="hProgress" hidden>Your progress stays in this browser. To use another computer:
         <button class="mini" id="hEmail">Email me my progress</button>
         <button class="mini" id="hCopy">Copy my progress link</button></p>
@@ -73,19 +73,11 @@
 <main id="work" hidden>
   <section class="left">
     <div class="panel lesson" id="lesson" hidden>
-      <h2><span id="lConcept"></span><span class="fold" id="lFold">hide</span></h2>
-      <div class="steps" id="lSteps"></div>
+      <div class="stephead"><nav class="steps" id="lSteps"></nav><span class="fold" id="lFold">hide</span></div>
       <div class="lbody" id="lBody">
-        <p id="lText"></p>
+        <p class="concept" id="lConcept"></p>
+        <div class="prose" id="lText"></div>
         <div class="look" id="lLook" hidden></div>
-        <div class="task" id="lTask" hidden></div>
-        <div class="acts">
-          <span class="seen" id="lSeen" hidden></span>
-          <button class="go" id="lTurn" hidden>Your turn</button>
-          <button id="lHint" hidden>Hint</button>
-          <button id="lWatch" hidden>Watch again</button>
-          <button id="lReset" hidden>Reset code</button>
-        </div>
         <div class="hints" id="lHints"></div>
       </div>
     </div>
@@ -99,20 +91,26 @@
         <button id="bToStop" title="Go to the next stop sign (click a line number to add one)"><svg viewBox="0 0 24 24"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" fill="#d93025"/></svg></button>
         <button id="bPlay" title="Play / pause (Cmd+Enter)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
         <span class="spacer"></span>
-        <button id="bVars" class="varsbtn" title="Variables" aria-expanded="false"><span class="xeq">x=</span><span class="cnt" id="varCount">0</span><svg viewBox="0 0 24 24"><path d="M5 8l7 8 7-8z" fill="currentColor"/></svg></button>
-        <button id="bExplain" aria-pressed="true" title="Explanations on / off"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H9l-5 4z" fill="currentColor"/></svg></button>
+        <button id="bVars" class="varsbtn" title="Variables" aria-expanded="false"><span class="xeq">Variables</span><svg viewBox="0 0 24 24"><path d="M5 8l7 8 7-8z" fill="currentColor"/></svg></button>
+        <button id="bExplain" aria-pressed="true" title="Explanations on / off" aria-label="Explanations on / off"><span class="qmark">?</span></button>
+        <button id="bMore" class="morebtn" title="More: hint, watch again, reset" aria-expanded="false" hidden>&middot;&middot;&middot;</button>
         <select id="speed" title="Play speed" aria-label="Play speed">
           <option value="0.5">0.5x</option><option value="1">1x</option><option value="2" selected>2x</option><option value="4">4x</option><option value="20">max</option>
         </select>
       </div>
       <div id="editor" aria-label="Code"></div>
       <div class="varspop" id="varsPop" hidden></div>
+      <div class="morepop" id="morePop" hidden>
+        <button id="mHint">Hint</button>
+        <button id="mWatch">Back to Learn</button>
+        <button id="mReset">Reset code</button>
+      </div>
     </div>
-    <div class="panel turtles" id="turtles"></div>
   </section>
 
   <section class="side">
     <div class="panel">
+      <div class="turtles" id="turtles"></div>
       <canvas id="cv"></canvas>
       <div class="canvasbar"><span class="coords" id="coords"></span><label class="check"><input id="grid" type="checkbox" checked> Grid</label></div>
       <div class="badge" id="lBadge" hidden></div>

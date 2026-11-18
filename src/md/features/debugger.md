@@ -8,13 +8,14 @@ The controls are one row at the top of the code panel, in this order:
 
 - Start: go back to before the first step.
 - Back: one step back. The drawing and the variables go back too.
-- Next: one step forward. This is the only button with a word.
+- Next: one step forward. This is the only button with a word. At the end of a run in a lesson, Next becomes the way forward: "Your turn" after Learn (a `watch` step), "Next: Do" (or "Next lesson", "All lessons") after a match. It turns yellow and throbs. If the drawing does not match, Next is off and the badge says what is missing. Why: the human felt stuck at the end of a step; the way forward was in a small link in the badge.
 - Skip function: run a whole function call in one step. It is on only when the next step is a call.
 - To stop sign: go to the next stop sign.
 - Play / Pause: play the steps at the chosen speed. It pauses before a stop-sign line and at the end.
 - Variables: open or close the variables dropdown.
-- Explanations on / off: show or hide the gray `# ...` text.
+- Explanations on / off ("?" button): show or hide the gray `# ...` text.
 - Speed menu: shows the current speed (0.5x to max).
+- More (...) menu, in lessons only: hint (one at a time), back to Learn, reset code. These were buttons in the lesson strip; the human wanted the strip to be prose only.
 
 Keyboard: Left and Right arrows step when the editor does not have focus. Cmd+Enter plays.
 
@@ -37,7 +38,7 @@ Keyboard: Left and Right arrows step when the editor does not have focus. Cmd+En
 - Canvas: the turtle shows its `(x, y)` next to it. A dashed line shows the next move. An arc shows the last turn.
 - Before the first step, the canvas and the turtle chips show the start turtle (center, facing right). An empty canvas looked like a broken page.
 - The active turtle (the one that moved last, or the start turtle) throbs a little, on the canvas and in its chip. The renderer keeps the scene in an image and redraws only the turtles each frame. No throb with "reduce motion".
-- Variables: an `x=` button in the toolbar opens a dropdown. The button shows the number of variables and flashes when a value changes. The dropdown groups variables by running function, the innermost first, with the caller line.
+- Variables: a "Variables" button in the toolbar opens a dropdown. The button flashes when a value changes. It shows no count (the human removed it). The dropdown groups variables by running function, the innermost first, with the caller line.
 - Each variable is a chip. The color shows the type: blue number, green text, orange list, purple True/False, gray function. A small tag names the type (`int`, `str`, `list`). Text keeps its quotes.
 - Hover a name in the code to see its type in words and its value at the current step.
 - Why: the human wanted types visible but quiet. A closed dropdown takes no space. Option mockups: `tmp/mockups/variables.html` (not in git).

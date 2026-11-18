@@ -212,7 +212,7 @@ export class Renderer {
   }
 
   // Turtle in its pen color, facing its heading, size grows with pen size.
-  drawTurtle(t, active, pulse = 1) {
+  drawTurtle(t, active, pulse = 1, label = true) {
     const g = this.g;
     const k = (0.8 + Math.min(t.width, 10) * 0.1) * pulse;
     g.save();
@@ -233,6 +233,7 @@ export class Renderer {
     g.beginPath(); g.ellipse(0, 0, 11, 8, 0, 0, Math.PI * 2); g.fill(); g.stroke();
     g.beginPath(); g.arc(13, 0, 4.5, 0, Math.PI * 2); g.fill(); g.stroke();
     g.restore();
+    if (!label) { g.restore(); return; }
     g.scale(1, -1);
     g.fillStyle = "#6b7280";
     g.font = "11px ui-monospace, monospace";

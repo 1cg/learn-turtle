@@ -25,6 +25,7 @@ let explain = true;
 let prevBoxes = {};
 let currentFrames = [];
 let lessonHook = () => {};
+let lessonNext = () => null; // the way forward at the end of a run: { label, go } or null
 let pythonReady = false;
 
 const runner = new Runner((s, msg) => {
@@ -56,7 +57,6 @@ function forget() {
   $("warn").hidden = true;
   renderer.draw([], 0);
   $("varsPop").innerHTML = '<span class="empty">no variables yet</span>';
-  $("varCount").textContent = "0";
   $("turtles").innerHTML = chipsHTML([START_TURTLE], 0);
   $("outBox").hidden = true;
   updateButtons();
@@ -96,7 +96,6 @@ function render() {
   });
   const vars = varsHTML(v.frames, v.pos < 0 ? {} : prevBoxes);
   $("varsPop").innerHTML = vars.html;
-  $("varCount").textContent = vars.count;
   if (vars.changed) { $("bVars").classList.remove("pulse"); void $("bVars").offsetWidth; $("bVars").classList.add("pulse"); }
   prevBoxes = vars.now;
   currentFrames = v.frames;
@@ -115,7 +114,11 @@ function updateButtons() {
   const atEnd = has && stepper.atEnd();
   $("bStart").disabled = atStart;
   $("bBack").disabled = atStart;
-  $("bNext").disabled = !pythonReady || atEnd;
+  // At the end of a run, Next becomes the way forward (Your turn, Next: Do, Next lesson).
+  const fwd = atEnd ? lessonNext(stepper) : null;
+  $("bNext").disabled = !pythonReady || (atEnd && !fwd);
+  $("bNext").lastChild.textContent = fwd ? fwd.label : "Next";
+  $("bNext").classList.toggle("forward", !!fwd);
   $("bSkip").disabled = !pythonReady || atEnd || (has && !stepper.canSkip());
   $("bToStop").disabled = !pythonReady || atEnd || editor.getStops().length === 0;
   $("bPlay").disabled = !pythonReady;
@@ -151,7 +154,10 @@ async function play() {
   tick();
 }
 
-$("bNext").onclick = () => act((s) => s.next());
+$("bNext").onclick = () => {
+  const fwd = stepper && stepper.atEnd() ? lessonNext(stepper) : null;
+  if (fwd) fwd.go(); else act((s) => s.next());
+};
 $("bBack").onclick = () => act((s) => s.back());
 $("bStart").onclick = () => act((s) => { s.go(-1); prevBoxes = {}; });
 $("bSkip").onclick = () => act((s) => s.skip());
@@ -200,7 +206,7 @@ $("cv").onmousemove = (e) => {
 };
 $("cv").onmouseleave = () => { $("coords").textContent = ""; };
 
-lessonHook = await initLessons({ editor, runner, renderer, play, forget, freeStarter: STARTER });
+({ hook: lessonHook, next: lessonNext } = await initLessons({ editor, runner, renderer, play, forget, freeStarter: STARTER }));
 
 window.learnTurtle = { editor, get stepper() { return stepper; } };
 forget();
