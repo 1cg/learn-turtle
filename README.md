@@ -26,3 +26,7 @@ The page needs a web server. It does not work from `file://`.
 - Run `python3 test/test_explain.py`.
 - Open each page in `test/` that ends in `-test.html`, for example http://127.0.0.1:8765/test/runner-test.html.
 - All cases must show PASS.
+
+## License
+
+BSD 3-Clause. See `LICENSE`. Pyodide (MPL-2.0) and Monaco Editor (MIT) load from a CDN and are not in this repo.
