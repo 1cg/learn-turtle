@@ -35,6 +35,8 @@ Keyboard: Left and Right arrows step when the editor does not have focus. Cmd+En
 
 - Turtles: one small chip per turtle under the code. The icon has the pen color, faces the heading, and grows with the pen size. A pen icon shows up or down. Hover shows position and heading. There is no name.
 - Canvas: the turtle shows its `(x, y)` next to it. A dashed line shows the next move. An arc shows the last turn.
+- Before the first step, the canvas and the turtle chips show the start turtle (center, facing right). An empty canvas looked like a broken page.
+- The active turtle (the one that moved last, or the start turtle) throbs a little, on the canvas and in its chip. The renderer keeps the scene in an image and redraws only the turtles each frame. No throb with "reduce motion".
 - Variables: an `x=` button in the toolbar opens a dropdown. The button shows the number of variables and flashes when a value changes. The dropdown groups variables by running function, the innermost first, with the caller line.
 - Each variable is a chip. The color shows the type: blue number, green text, orange list, purple True/False, gray function. A small tag names the type (`int`, `str`, `list`). Text keeps its quotes.
 - Hover a name in the code to see its type in words and its value at the current step.

@@ -25,7 +25,7 @@ const white = (c) => c.every((v) => v > 240);
 const red = (c) => c[0] > 200 && c[1] < 60 && c[2] < 60;
 const dark = (c) => c.every((v) => v < 100);
 
-const H = "hideturtle()\n";
+const H = "hideturtle()\npensize(3)\n"; // thick lines: a 1 px line is gray at device pixel ratio 1
 const cases = [
   { name: "square line", code: H + "for i in range(4):\n    forward(100)\n    left(90)\n",
     check: (r) => dark(px(r, 50, 0)) && dark(px(r, 100, 50)) && white(px(r, 50, 50)) },
@@ -35,7 +35,7 @@ const cases = [
   { name: "circle top", code: H + "circle(50)\n", check: (r) => dark(px(r, 0, 100)) && white(px(r, 0, 50)) },
   { name: "dot", code: H + "penup()\ngoto(-100, -100)\ndot(20, 'red')\n", check: (r) => red(px(r, -100, -100)) },
   { name: "clear", code: H + "forward(100)\nclear()\n", check: (r) => white(px(r, 50, 0)) },
-  { name: "two turtles", code: "bob = Turtle()\nbob.hideturtle()\nhideturtle()\nbob.left(90)\nbob.forward(100)\nforward(100)\n",
+  { name: "two turtles", code: "bob = Turtle()\nbob.hideturtle()\nhideturtle()\nbob.pensize(3)\npensize(3)\nbob.left(90)\nbob.forward(100)\nforward(100)\n",
     check: (r) => dark(px(r, 0, 50)) && dark(px(r, 50, 0)) },
   { name: "bgcolor", code: H + "bgcolor('red')\n", check: (r) => red(px(r, -150, 150)) },
 ];

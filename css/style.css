@@ -169,3 +169,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mascot { width: 400px; max-width: 100%; }
 .mascot .bubble { margin: 0 0 6px auto; }
 .mascot .bubble::after { left: auto; right: 18%; }
+/* the active turtle throbs a little */
+.tchip.active svg:first-child { animation: throb 1.2s ease-in-out infinite; }
+@keyframes throb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .tchip.active svg:first-child { animation: none; } }

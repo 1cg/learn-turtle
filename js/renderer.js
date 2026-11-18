@@ -2,6 +2,9 @@
 // World: 400 x 400, origin at center, y up. Commands come from py/turtle.py.
 
 export const SIZE = 400;
+// The turtle before the program runs: center, facing right, black pen.
+export const START_TURTLE = { t: 0, x: 0, y: 0, h: 0, pen: true, color: "black", fill: "black", width: 1, visible: true };
+const THROB_MS = 1200;
 const fmt = (v) => Math.round(v * 10) / 10;
 
 // Turtle state after the first n commands, one entry per turtle id.
@@ -72,7 +75,9 @@ export class Renderer {
 
   // Draw the state after n commands. opts.highlight: command index to draw bold.
   // opts.ghost: a command to show as a dashed preview. opts.active: active turtle id.
+  // opts.noDefault: no start turtle when nothing ran (for thumbnails).
   draw(cmds, n, opts = {}) {
+    cancelAnimationFrame(this.anim);
     const g = this.g;
     const { items, bg } = itemsAt(cmds, n);
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -117,9 +122,39 @@ export class Renderer {
       g.arc(a.x, a.y, 26, Math.min(h0, h1), Math.max(h0, h1));
       g.stroke();
     }
-    for (const t of turtlesAt(cmds, n)) {
-      if (t.visible) this.drawTurtle(t, t.t === opts.active);
-    }
+    // Keep the scene without turtles, so the active turtle can throb on top of it.
+    let turtles = turtlesAt(cmds, n);
+    if (!turtles.length && !opts.noDefault) turtles = [START_TURTLE];
+    const active = opts.active ?? 0;
+    this.turtles = turtles.filter((t) => t.visible);
+    if (!this.base) this.base = document.createElement("canvas");
+    this.base.width = this.canvas.width;
+    this.base.height = this.canvas.height;
+    const bg2 = this.base.getContext("2d");
+    bg2.imageSmoothingEnabled = false;
+    bg2.drawImage(this.canvas, 0, 0);
+    this.paintTurtles(active, 1);
+    if (!this.turtles.some((t) => t.t === active)) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const t0 = performance.now();
+    const frame = (now) => {
+      const pulse = 1 + 0.08 * Math.sin(((now - t0) / THROB_MS) * 2 * Math.PI);
+      this.paintTurtles(active, pulse);
+      this.anim = requestAnimationFrame(frame);
+    };
+    this.anim = requestAnimationFrame(frame);
+  }
+
+  paintTurtles(active, pulse) {
+    const g = this.g;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(this.base, 0, 0);
+    g.imageSmoothingEnabled = true;
+    g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    g.translate(SIZE / 2, SIZE / 2);
+    g.scale(1, -1);
+    for (const t of this.turtles) this.drawTurtle(t, t.t === active, t.t === active ? pulse : 1);
   }
 
   drawGrid() {
@@ -177,9 +212,9 @@ export class Renderer {
   }
 
   // Turtle in its pen color, facing its heading, size grows with pen size.
-  drawTurtle(t, active) {
+  drawTurtle(t, active, pulse = 1) {
     const g = this.g;
-    const k = 0.8 + Math.min(t.width, 10) * 0.1;
+    const k = (0.8 + Math.min(t.width, 10) * 0.1) * pulse;
     g.save();
     g.translate(t.x, t.y);
     if (active) {

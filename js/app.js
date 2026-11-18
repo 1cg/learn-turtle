@@ -1,5 +1,5 @@
 import { Runner } from "./runner.js";
-import { Renderer, turtlesAt } from "./renderer.js";
+import { Renderer, turtlesAt, START_TURTLE } from "./renderer.js";
 import { createEditor } from "./editor.js";
 import { Stepper, varsHTML, chipsHTML, lookupVar, typeOf } from "./debugger.js";
 import { kidError } from "./errors.js";
@@ -57,7 +57,7 @@ function forget() {
   renderer.draw([], 0);
   $("varsPop").innerHTML = '<span class="empty">no variables yet</span>';
   $("varCount").textContent = "0";
-  $("turtles").innerHTML = "";
+  $("turtles").innerHTML = chipsHTML([START_TURTLE], 0);
   $("outBox").hidden = true;
   updateButtons();
 }
@@ -100,7 +100,7 @@ function render() {
   if (vars.changed) { $("bVars").classList.remove("pulse"); void $("bVars").offsetWidth; $("bVars").classList.add("pulse"); }
   prevBoxes = vars.now;
   currentFrames = v.frames;
-  $("turtles").innerHTML = chipsHTML(turtlesAt(cmds, Math.max(v.cmdN, 1)), made ? made.after.t : -1);
+  $("turtles").innerHTML = chipsHTML(turtlesAt(cmds, Math.max(v.cmdN, 1)), made ? made.after.t : 0);
   $("out").textContent = v.out;
   $("outBox").hidden = !v.out;
   // A syntax error has no steps: show it at once.

@@ -199,12 +199,12 @@ export async function initLessons({ editor, runner, renderer, play, forget, free
     const r = new Renderer(cv);
     r.grid = false;
     const pts = paths.flat();
-    if (!pts.length) return r.draw([], 0);
+    if (!pts.length) return r.draw([], 0, { noDefault: true });
     const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
     const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
     const k = Math.min(3, 330 / Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 1));
     const after = { t: 0, x: 0, y: 0, h: 0, pen: true, color: "#1d2330", fill: "#1d2330", width: 7, visible: false };
-    r.draw(paths.map((p) => ({ op: "move", draw: true, pts: p.map(([x, y]) => [(x - cx) * k, (y - cy) * k]), after })), paths.length);
+    r.draw(paths.map((p) => ({ op: "move", draw: true, pts: p.map(([x, y]) => [(x - cx) * k, (y - cy) * k]), after })), paths.length, { noDefault: true });
   }
 
   async function progressLink() {
