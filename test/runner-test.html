@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Runner test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}</style>
+</head>
+<body>
+<h1>Runner test</h1>
+<div id="log">loading Python...</div>
+<script type="module">
+import { Runner } from "../js/runner.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; if (ok !== undefined) d.className = ok ? "ok" : "bad"; log.append(d); };
+
+const runner = new Runner((s, m) => console.log("status", s, m || ""));
+const cases = [
+  { name: "square", code: "for i in range(4):\n    forward(50)\n    left(90)\n",
+    check: (r) => !r.error && r.cmds.filter(c => c.op === "move").length === 4 &&
+      Math.abs(r.cmds.at(-1).after.x) < 1e-6 && r.cmds.at(-1).after.h === 0 },
+  { name: "function + variable", code: "def sq(size):\n    for i in range(4):\n        forward(size)\n        left(90)\n    return size * 4\n\nn = sq(30)\nprint(n)\n",
+    check: (r) => !r.error && r.out === "120\n" && r.steps.some(s => s.frames.length === 2 && s.frames[1].name === "sq" && s.frames[1].vars.size?.repr === "30") },
+  { name: "circle ends at start", code: "circle(50)\n",
+    check: (r) => !r.error && Math.abs(r.cmds.at(-1).after.x) < 0.01 && Math.abs(r.cmds.at(-1).after.y) < 0.01 },
+  { name: "name error line", code: "forward(10)\nfoward(10)\n",
+    check: (r) => r.error?.type === "NameError" && r.error.line === 2 },
+  { name: "syntax error line", code: "for i in range(3)\n    forward(10)\n",
+    check: (r) => r.error?.type === "SyntaxError" && r.error.line === 1 },
+  { name: "infinite loop", code: "while True:\n    forward(1)\n",
+    check: (r) => r.error?.type === "StepLimit" },
+];
+
+let pass = 0;
+for (const c of cases) {
+  const t0 = performance.now();
+  const r = await runner.run(c.code);
+  const ok = !!c.check(r);
+  if (ok) pass++;
+  else console.error("FAIL", c.name, JSON.stringify(r.error));
+  say(`${ok ? "PASS" : "FAIL"} ${c.name} (${Math.round(performance.now() - t0)} ms, ${r.steps.length} steps)` + (ok ? "" : " " + JSON.stringify(r.error)), ok);
+}
+say(`${pass}/${cases.length} pass`, pass === cases.length);
+console.warn(`SUMMARY ${pass}/${cases.length} pass`);
+document.title = `Runner test ${pass}/${cases.length}`;
+</script>
+</body>
+</html>
