@@ -3,6 +3,7 @@ import { Renderer, turtlesAt } from "./renderer.js";
 import { createEditor } from "./editor.js";
 import { Stepper, varsHTML, chipsHTML, lookupVar, typeOf } from "./debugger.js";
 import { kidError } from "./errors.js";
+import { initLessons } from "./lessons.js";
 
 const $ = (id) => document.getElementById(id);
 const STARTER = `# Draw a square
@@ -30,6 +31,7 @@ let timer = null;
 let explain = true;
 let prevBoxes = {};
 let currentFrames = [];
+let lessonHook = () => {};
 let pythonReady = false;
 
 const runner = new Runner((s, msg) => {
@@ -84,8 +86,15 @@ function render() {
   if (!stepper) return;
   const v = stepper.view();
   const cmds = stepper.rec.cmds;
-  editor.setLines({ ran: v.ran, next: stepper.atEnd() ? 0 : v.next, ghost: explain ? v.say : "" });
+  let ran = v.ran;
+  if (v.end) {
+    const lines = editor.getValue().split("\n");
+    ran = lines.length;
+    while (ran > 1 && !lines[ran - 1].trim()) ran--;
+  }
+  editor.setLines({ ran, next: stepper.atEnd() ? 0 : v.next, ghost: explain ? v.say : "" });
   const made = v.made;
+  lessonHook(stepper);
   renderer.draw(cmds, v.cmdN, {
     highlight: made && (made.op === "move" || made.op === "circle") ? v.cmdN - 1 : undefined,
     ghost: timer ? null : v.ghost,
@@ -197,6 +206,8 @@ $("cv").onmousemove = (e) => {
   $("coords").textContent = `x ${p.x}, y ${p.y}`;
 };
 $("cv").onmouseleave = () => { $("coords").textContent = ""; };
+
+lessonHook = await initLessons({ editor, runner, renderer, play, forget, freeStarter: STARTER });
 
 window.learnTurtle = { editor, get stepper() { return stepper; } };
 forget();

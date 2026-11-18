@@ -60,6 +60,8 @@ export class Stepper {
       pos: p, cur, after, cmdN, frames, made, ghost,
       // "done" step of a function: mark the line that called it.
       ran: !cur ? 0 : cur.event === "return" && cur.frames.length > 1 ? cur.frames[cur.frames.length - 2].line : cur.line,
+      // The last step of the main program: the app marks the last line of the code.
+      end: !!cur && !after && cur.event === "return" && cur.frames.length === 1,
       next: after ? after.line : 0,
       say: !cur ? "" : !after && rec.error ? `Python stops here: ${rec.error.type}` : cur.say,
       out: rec.out.slice(0, after ? after.out : rec.out.length),

@@ -31,8 +31,14 @@ export class Runner {
     }
   }
 
+  // Runs wait in a queue: a new run does not stop an earlier one.
   run(code) {
-    if (this.pending) this.stop();
+    const next = (this.queue || Promise.resolve()).then(() => this.runNow(code));
+    this.queue = next.catch(() => {});
+    return next;
+  }
+
+  runNow(code) {
     const id = this.nextId++;
     this.onStatus("running");
     return new Promise((resolve) => {

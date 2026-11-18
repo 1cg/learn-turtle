@@ -83,7 +83,23 @@ export class Renderer {
     g.scale(1, -1);
     g.lineCap = "round";
     g.lineJoin = "round";
+    // Lesson goal: a wide light dashed line under the drawing.
+    if (this.goal) {
+      g.setLineDash([8, 6]);
+      g.strokeStyle = "#c9c4b6";
+      g.lineWidth = 6;
+      for (const pts of this.goal) this.path(pts);
+      g.setLineDash([]);
+    }
     for (const it of items) this.drawItem(it, it.i === opts.highlight);
+    // Goal parts that the drawing does not cover.
+    if (this.missing) {
+      g.setLineDash([6, 5]);
+      g.strokeStyle = "#d93025";
+      g.lineWidth = 3;
+      for (const pts of this.missing) this.path(pts);
+      g.setLineDash([]);
+    }
     if (opts.ghost && (opts.ghost.op === "move" || opts.ghost.op === "circle")) {
       g.setLineDash([6, 6]);
       g.strokeStyle = "#999";

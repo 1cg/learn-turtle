@@ -96,3 +96,31 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 .vchip.bool { border-color: #b9a2f0; background: #f3efff; }
 .vchip.fn { border-color: #c9c4b6; background: #f6f4ee; }
 .vchip.changed { animation: flash 0.9s; }
+/* lessons */
+.lnav { display: flex; align-items: center; gap: 6px; }
+.lnav[hidden] { display: none; }
+.lnav button { width: 30px; height: 30px; padding: 0; justify-content: center; border-width: 1px; border-radius: 8px; }
+.lnav button svg { width: 14px; height: 14px; }
+.ltitle { font-weight: 700; margin: 0 4px; }
+.dots { display: flex; gap: 3px; margin-left: 8px; flex-wrap: wrap; }
+.dots a { width: 9px; height: 9px; border-radius: 50%; background: #e3e0d6; }
+.dots a.done { background: #2f7d4f; }
+.dots a.now { background: #e0b400; }
+.modelink { font-size: 14px; color: var(--muted); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; }
+.modelink[hidden] { display: none; }
+.lesson { padding: 10px 14px 12px; }
+.lesson[hidden], .lbody[hidden] { display: none; }
+.lesson h2 { margin: 0 0 6px; font-size: 17px; text-transform: none; letter-spacing: 0; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.lesson .fold { margin-left: auto; font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 400; }
+.lesson p { margin: 0 0 6px; font-size: 15px; }
+.lesson .task { background: #eef6ff; border: 1px solid #8bb8e8; border-radius: 8px; padding: 6px 10px; font-size: 15px; }
+.lesson .task b { color: #1565c0; }
+.lesson .acts { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.lesson .acts button { padding: 4px 10px; font-size: 14px; border-width: 1px; border-radius: 8px; }
+.lesson .acts button[hidden] { display: none; }
+.hint { font-size: 14px; color: #7a5300; background: #fff7e0; border: 1px solid #f0d48a; border-radius: 8px; padding: 4px 10px; margin-top: 6px; }
+.badge { margin: 0 16px 10px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.badge[hidden] { display: none; }
+.badge.no { background: #fff7e0; color: #7a5300; border: 1px solid #f0d48a; }
+.badge.yes { background: #e6f4ea; color: #1e6b3a; border: 1px solid #a8d5b5; }
+.badge a { margin-left: 8px; color: inherit; }

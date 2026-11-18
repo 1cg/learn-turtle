@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Check test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}</style>
+</head>
+<body>
+<h1>Check test</h1>
+<div id="log">loading Python...</div>
+<script type="module">
+import { Runner } from "../js/runner.js";
+import { drawnPaths, compare } from "../js/check.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+const runner = new Runner(() => {});
+const paths = async (code) => drawnPaths((await runner.run(code)).cmds);
+const SQ = "for i in range(4):\n    forward(100)\n    left(90)\n";
+
+// [name, goal code, kid code, want ok, extra check]
+const cases = [
+  ["same code matches", SQ, SQ, true],
+  ["other order matches", SQ, "left(90)\nforward(100)\nright(90)\nforward(100)\nright(90)\nforward(100)\nright(90)\nforward(100)\n", true],
+  ["many small steps match", SQ, "for i in range(4):\n    for k in range(10):\n        forward(10)\n    left(90)\n", true],
+  ["3 sides: 1 missing", SQ, "for i in range(3):\n    forward(100)\n    left(90)\n", false, (r) => r.missingCount === 1],
+  ["extra line fails", SQ, SQ + "right(45)\nforward(100)\n", false, (r) => r.precision < 0.95],
+  ["retrace a side still matches", SQ, SQ + "forward(100)\n", true],
+  ["pen up move is not a line", SQ, "penup()\n" + SQ, false],
+  ["circle matches circle", "circle(50)\n", "circle(50, 360)\n", true],
+  ["small mistake 2 units ok", "forward(100)\n", "forward(98)\n", true],
+  ["empty drawing fails", SQ, "", false],
+];
+
+let pass = 0;
+log.textContent = "";
+for (const [name, goal, kid, want, extra] of cases) {
+  const r = compare(await paths(goal), await paths(kid));
+  const ok = r.ok === want && (!extra || extra(r));
+  if (ok) pass++; else console.error("FAIL", name, r);
+  say(`${ok ? "PASS" : "FAIL"} ${name} (cover ${r.coverage.toFixed(2)}, prec ${r.precision.toFixed(2)})`, ok);
+}
+say(`${pass}/${cases.length} pass`, pass === cases.length);
+console.warn(`SUMMARY ${pass}/${cases.length} pass`);
+</script>
+</body>
+</html>
