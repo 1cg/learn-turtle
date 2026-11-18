@@ -165,3 +165,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 .tile.next { border-color: #e0b400; box-shadow: 0 0 0 3px #ffe06688; }
 .tile.next::before { content: "Next"; position: absolute; top: -10px; left: 8px; background: #e0b400; color: #fff; font: 600 11px system-ui; padding: 1px 8px; border-radius: 99px; }
 @media (max-width: 700px) { .unit { grid-template-columns: 1fr; } .lhead .of { display: none; } }
+/* the speech bubble points at the head of the turtle (head is about 80% from the left) */
+.mascot { width: 400px; max-width: 100%; }
+.mascot .bubble { margin: 0 0 6px auto; }
+.mascot .bubble::after { left: auto; right: 18%; }
