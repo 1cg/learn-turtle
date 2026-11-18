@@ -13,8 +13,8 @@ import turtle   # noqa: E402  (py/turtle.py, not the standard library)
 LESSON_FIELDS = ["id", "unit", "title", "concept", "objects", "steps"]
 STEP_FIELDS = {
     "watch": ["text", "look", "code"],
-    "try": ["text", "task", "solution", "hints"],
-    "extend": ["text", "task", "solution", "hints"],
+    "try": ["text", "solution", "hints"],
+    "extend": ["text", "solution", "hints"],
 }
 OBJECTS_UNIT = 11
 COMMANDS = sorted(m for m in dir(turtle.Turtle) if not m.startswith("_"))
@@ -74,6 +74,11 @@ def check(lesson):
         for f in STEP_FIELDS[s["kind"]]:
             if f not in s or (isinstance(s[f], str) and not s[f].strip()) or (f == "hints" and not s[f]):
                 errs.append(f"{name}: {f} is missing or empty")
+        if "task" in s:
+            errs.append(f"{name}: task is folded into text; remove the task field")
+        for f in ["text", "look"]:
+            if f in s and not s[f].isascii():
+                errs.append(f"{name}: {f} has non-ASCII characters")
         if errs:
             continue
         if s["kind"] == "watch":
