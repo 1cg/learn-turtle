@@ -1,0 +1,22 @@
+# Feedback Worker. Intent: src/md/features/feedback.md
+name = "learn-turtle-feedback"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+# The route needs learnturtle.org in this Cloudflare account (card-8).
+routes = [
+  { pattern = "learnturtle.org/api/feedback", zone_name = "learnturtle.org" },
+  { pattern = "www.learnturtle.org/api/feedback", zone_name = "learnturtle.org" },
+]
+
+# 5 notes per 60 s for each key (the IP address). namespace_id is any unique number in the account.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
+
+# Notes go to D1. Schema: schema.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "learn-turtle-feedback"
+database_id = "e0a33463-2ede-4fe7-b999-5ea7cfab8bc3"
