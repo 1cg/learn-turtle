@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Editor test</title>
+<style>body{font:14px monospace;margin:16px;background:#fff;color:#111}.ok{color:green}.bad{color:#b00}#ed{width:600px;height:300px;border:1px solid #ccc}</style>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<h1>Editor test</h1>
+<div id="log"></div>
+<div id="ed"></div>
+<script type="module">
+import { createEditor } from "../js/editor.js";
+const log = document.getElementById("log");
+const say = (t, ok) => { const d = document.createElement("div"); d.textContent = t; d.className = ok ? "ok" : "bad"; log.append(d); };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const E = await createEditor(document.getElementById("ed"), "");
+const ed = E.editor;
+async function sugg(text, line, col) {
+  E.setValue(text); ed.setPosition({ lineNumber: line, column: col }); ed.focus();
+  ed.trigger("t", "editor.action.triggerSuggest", {});
+  await wait(800);
+  const rows = [...document.querySelectorAll(".suggest-widget .monaco-list-row .label-name")].map((e) => e.textContent);
+  ed.trigger("t", "hideSuggestWidget", {});
+  return rows;
+}
+
+const cases = [
+  ["forw suggests forward", async () => (await sugg("forw", 1, 5))[0] === "forward"],
+  ["fo suggests for loop first", async () => (await sugg("fo", 1, 3))[0] === "for loop"],
+  ["bob. suggests turtle methods", async () => (await sugg("bob = Turtle()\nbob.", 2, 5)).includes("forward")],
+  ["user function suggested", async () => (await sugg("def square(size):\n    pass\nsq", 3, 3))[0] === "square"],
+  ["no suggest in comment", async () => (await sugg("# forw", 1, 7)).length === 0],
+  ["for snippet indents 4 spaces", async () => {
+    E.setValue(""); ed.setPosition({ lineNumber: 1, column: 1 }); ed.focus();
+    ed.trigger("t", "type", { text: "fo" });
+    ed.trigger("t", "editor.action.triggerSuggest", {});
+    await wait(800);
+    ed.trigger("t", "acceptSelectedSuggestion", {});
+    await wait(200);
+    return E.getValue() === "for i in range(4):\n    ";
+  }],
+  ["parameter hint", async () => {
+    E.setValue("forward(5)"); ed.setPosition({ lineNumber: 1, column: 9 }); ed.focus();
+    ed.trigger("t", "editor.action.triggerParameterHints", {});
+    await wait(600);
+    return document.querySelector(".parameter-hints-widget .signature")?.textContent === "forward(distance)";
+  }],
+  ["stops follow edits", async () => {
+    E.setValue("a = 1\nb = 2\nc = 3\n"); E.setStops([2]);
+    ed.executeEdits("t", [{ range: new E.monaco.Range(1, 1, 1, 1), text: "x = 0\n" }]);
+    return JSON.stringify(E.getStops()) === "[3]";
+  }],
+  ["long ghost makes no scroll bar", async () => {
+    E.setValue("square(50)\n");
+    E.setLines({ ran: 1, ghost: "x".repeat(300) });
+    await wait(200);
+    return ed.getScrollWidth() <= ed.getLayoutInfo().width;
+  }],
+];
+
+let pass = 0;
+for (const [name, fn] of cases) {
+  let ok = false;
+  try { ok = await fn(); } catch (e) { console.error(e); }
+  if (ok) pass++; else console.error("FAIL", name);
+  say(`${ok ? "PASS" : "FAIL"} ${name}`, ok);
+}
+say(`${pass}/${cases.length} pass`, pass === cases.length);
+console.warn(`SUMMARY ${pass}/${cases.length} pass`);
+</script>
+</body>
+</html>

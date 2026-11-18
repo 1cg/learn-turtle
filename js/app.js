@@ -1,5 +1,6 @@
 import { Runner } from "./runner.js";
 import { Renderer } from "./renderer.js";
+import { createEditor } from "./editor.js";
 
 const $ = (id) => document.getElementById(id);
 const STARTER = `# Draw a square
@@ -8,8 +9,8 @@ for i in range(4):
     left(90)
 `;
 
-const editor = $("editor");
-editor.value = STARTER;
+const editor = await createEditor($("editor"), STARTER);
+window.learnTurtle = { editor };
 const renderer = new Renderer($("cv"));
 renderer.draw([], 0);
 
@@ -30,7 +31,9 @@ function stopAnim() {
 
 function showError(err) {
   const box = $("error");
+  editor.clearError();
   if (!err) { box.hidden = true; return; }
+  editor.showError(err.line, err.msg);
   box.hidden = false;
   box.textContent = (err.line ? `Line ${err.line}: ` : "") + `${err.type}: ${err.msg}`;
 }
@@ -57,7 +60,7 @@ $("bRun").onclick = async () => {
   stopAnim();
   showError(null);
   $("outBox").hidden = true;
-  rec = await runner.run(editor.value);
+  rec = await runner.run(editor.getValue());
   $("out").textContent = rec.out;
   $("outBox").hidden = !rec.out;
   if (rec.cmds.length) play();
@@ -80,10 +83,4 @@ $("cv").onmousemove = (e) => {
 };
 $("cv").onmouseleave = () => { $("coords").textContent = ""; };
 
-editor.addEventListener("keydown", (e) => {
-  if (e.key === "Tab") {
-    e.preventDefault();
-    editor.setRangeText("    ", editor.selectionStart, editor.selectionEnd, "end");
-  }
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) $("bRun").click();
-});
+editor.onRunKey(() => $("bRun").click());
