@@ -24,7 +24,7 @@
 ## Editor
 
 - Monaco 0.52.2 from cdn.jsdelivr.net, loaded with its AMD loader. Newer versions may drop the AMD loader.
-- `js/turtle-api.js` holds the command list for completion, parameter hints and hover help.
+- `js/turtle-api.js` holds the command list for completion, grey words and hover help, and the color list.
 
 ## Local work and tests
 

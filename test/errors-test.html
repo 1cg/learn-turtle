@@ -35,6 +35,9 @@ const cases = [
   ["x = 'a' + 1\n", "str(n)"],
   ["while True:\n    pass\n", "loop never ends"],
   ["bob = Turtle()\nbob.foward(1)\n", 'Did you mean "forward"?'],
+  ["color(\"purpel\")\n", 'Did you mean "purple"?'],
+  ["bob = Turtle()\nbob.color(\"zzzzzz\")\n", 'Try a name like "red"'],
+  ["dot(10, \"bleu\")\n", 'Did you mean "blue"?'],
 ];
 
 let pass = 0, total = 0;

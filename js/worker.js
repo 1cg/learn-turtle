@@ -4,6 +4,13 @@ importScripts(PYODIDE_URL + "pyodide.js");
 
 let py = null;
 
+// turtle.py asks this to check a color name. A bad name leaves fillStyle unchanged.
+const colorCtx = typeof OffscreenCanvas === "undefined" ? null : new OffscreenCanvas(1, 1).getContext("2d");
+self.isColor = (c) => {
+  if (!colorCtx) return true;
+  return ["#010203", "#040506"].some((probe) => { colorCtx.fillStyle = probe; colorCtx.fillStyle = c; return colorCtx.fillStyle !== probe; });
+};
+
 async function boot() {
   py = await loadPyodide({ indexURL: PYODIDE_URL });
   const base = new URL("../py/", self.location.href);

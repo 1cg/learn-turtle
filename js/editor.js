@@ -1,6 +1,6 @@
 // Monaco editor setup: kid settings, completion, parameter hints, hover help,
 // breakpoints (stop signs), and line marks for the debugger.
-import { TURTLE_API, GLOBAL_ONLY, PY_BUILTINS, PY_SNIPPETS, PY_KEYWORDS, API_BY_NAME } from "./turtle-api.js";
+import { TURTLE_API, GLOBAL_ONLY, PY_BUILTINS, PY_SNIPPETS, PY_KEYWORDS, API_BY_NAME, COLORS, COLOR_FNS } from "./turtle-api.js";
 import { diagram } from "./diagrams.js";
 
 const MONACO = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min";
@@ -25,8 +25,9 @@ function loadMonaco() {
 }
 
 // Names the kid made: functions, variables, loop variables, parameters.
-function userNames(text) {
+function userNames(text, skipLine = 0) {
   const names = new Map();
+  if (skipLine) text = text.split("\n").map((l, i) => (i + 1 === skipLine ? "" : l)).join("\n");
   for (const m of text.matchAll(/^\s*def\s+(\w+)\s*\(([^)]*)\)/gm)) {
     names.set(m[1], { kind: "function", params: m[2].split(",").map((p) => p.trim().split("=")[0].trim()).filter(Boolean) });
     for (const p of m[2].split(",")) {
@@ -53,70 +54,67 @@ function registerProviders(monaco) {
   const K = monaco.languages.CompletionItemKind;
   const SNIP = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
 
-  const fnItem = (f, range, sort) => ({
-    label: f.name, kind: f.name === "Turtle" ? K.Class : K.Function, insertText: f.snippet,
-    insertTextRules: SNIP, documentation: docMarkdown(f), detail: f.doc, range, sortText: sort + f.name,
+  const SUGGEST = { id: "editor.action.triggerSuggest", title: "colors" };
+  // A call goes in as the name and empty brackets, cursor inside. No sample value.
+  // Only the name if a "(" already follows.
+  const call = (name, nParams, parenAfter) => {
+    if (parenAfter) return { insertText: name };
+    if (!nParams) return { insertText: name + "()" };
+    if (COLOR_FNS.includes(name)) return { insertText: name + '("$0")', insertTextRules: SNIP, command: SUGGEST };
+    return { insertText: name + "($0)", insertTextRules: SNIP };
+  };
+  const fnItem = (f, range, sort, parenAfter) => ({
+    label: f.name, kind: f.name === "Turtle" ? K.Class : K.Function, documentation: docMarkdown(f), detail: f.doc,
+    range, sortText: sort + f.name, ...call(f.name, f.params.length, parenAfter),
   });
+  const COLOR_ARG = String.raw`(?:\b(?:${COLOR_FNS.join("|")})\(\s*|\bdot\([^,()]*,\s*)`;
+  const IN_COLOR = new RegExp(COLOR_ARG + String.raw`["'](\w*)$`);
 
   monaco.languages.registerCompletionItemProvider("python", {
-    triggerCharacters: ["."],
+    triggerCharacters: [".", '"', "'"],
     provideCompletionItems(model, pos) {
       const word = model.getWordUntilPosition(pos);
-      const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: word.startColumn, endColumn: word.endColumn };
-      const before = model.getLineContent(pos.lineNumber).slice(0, word.startColumn - 1);
+      const whole = model.getWordAtPosition(pos);
+      const end = whole ? whole.endColumn : word.endColumn;
+      const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: word.startColumn, endColumn: end };
+      const line = model.getLineContent(pos.lineNumber);
+      const before = line.slice(0, word.startColumn - 1);
+      const typed = word.word.toLowerCase();
+      // Inside the quotes of a color: the color list.
+      const cm = line.slice(0, pos.column - 1).match(IN_COLOR);
+      if (cm) {
+        return { incomplete: true, suggestions: Object.entries(COLORS).filter(([n]) => n.startsWith(typed) && n !== typed)
+          .map(([n, hex], i) => ({ label: n, kind: K.Color, documentation: hex, insertText: n, range, sortText: String(i).padStart(2, "0") })) };
+      }
       if (before.includes("#") || (before.split('"').length % 2 === 0) || (before.split("'").length % 2 === 0)) return { suggestions: [] };
-      if (/\w\.$/.test(before)) return { suggestions: TURTLE_API.map((f) => fnItem(f, range, "0")) };
+      const parenAfter = /^\s*\(/.test(line.slice(end - 1));
+      // Prefix match only, asked again on each letter. A full function or variable name closes the list.
+      const keep = (items) => items.some((i) => i.label.toLowerCase() === typed && (i.kind === K.Function || i.kind === K.Variable || i.kind === K.Class))
+        ? { suggestions: [], incomplete: true }
+        : { suggestions: items.filter((i) => (i.filterText || i.label).toLowerCase().startsWith(typed)), incomplete: true };
+      if (/\w\.$/.test(before)) return keep(TURTLE_API.map((f) => fnItem(f, range, "0", parenAfter)));
       if (/[.\w]$/.test(before)) return { suggestions: [] };
+      if (typed.length < 2) return { suggestions: [], incomplete: true };
       const out = [];
-      TURTLE_API.forEach((f) => out.push(fnItem(f, range, "1")));
-      GLOBAL_ONLY.forEach((f) => out.push(fnItem(f, range, "2")));
-      PY_BUILTINS.forEach((f) => out.push(fnItem(f, range, "2")));
-      for (const s of PY_SNIPPETS) {
-        out.push({ label: s.label, kind: K.Snippet, insertText: s.insert, insertTextRules: SNIP,
-          documentation: s.doc, detail: s.doc, range, sortText: "0" + s.label, filterText: s.label.split(" ")[0] });
+      TURTLE_API.forEach((f) => out.push(fnItem(f, range, "1", parenAfter)));
+      GLOBAL_ONLY.forEach((f) => out.push(fnItem(f, range, "2", parenAfter)));
+      PY_BUILTINS.forEach((f) => out.push(fnItem(f, range, "2", parenAfter)));
+      if (!parenAfter) {
+        for (const s of PY_SNIPPETS) {
+          out.push({ label: s.label, kind: K.Snippet, insertText: s.insert, insertTextRules: SNIP,
+            documentation: s.doc, detail: s.doc, range, sortText: "0" + s.label, filterText: s.label.split(" ")[0] });
+        }
       }
       for (const k of PY_KEYWORDS) {
         if (!API_BY_NAME[k]) out.push({ label: k, kind: K.Keyword, insertText: k, range, sortText: "3" + k });
       }
-      for (const [n, info] of userNames(model.getValue())) {
-        if (API_BY_NAME[n]) continue;
+      for (const [n, info] of userNames(model.getValue(), pos.lineNumber)) {
+        if (API_BY_NAME[n] || PY_KEYWORDS.includes(n)) continue;
         const fn = info.kind === "function";
         out.push({ label: n, kind: fn ? K.Function : K.Variable, range, sortText: "0" + n,
-          insertText: fn ? `${n}(${info.params.map((p, i) => "${" + (i + 1) + ":" + p + "}").join(", ")})` : n,
-          insertTextRules: fn ? SNIP : undefined, detail: fn ? "your function" : "your variable" });
+          detail: fn ? "your function" : "your variable", ...(fn ? call(n, info.params.length, parenAfter) : { insertText: n }) });
       }
-      return { suggestions: out };
-    },
-  });
-
-  monaco.languages.registerSignatureHelpProvider("python", {
-    signatureHelpTriggerCharacters: ["(", ","],
-    signatureHelpRetriggerCharacters: [","],
-    provideSignatureHelp(model, pos) {
-      const text = model.getLineContent(pos.lineNumber).slice(0, pos.column - 1);
-      let depth = 0, commas = 0, open = -1;
-      for (let i = text.length - 1; i >= 0; i--) {
-        const ch = text[i];
-        if (ch === ")") depth++;
-        else if (ch === "(") { if (depth === 0) { open = i; break; } depth--; }
-        else if (ch === "," && depth === 0) commas++;
-      }
-      if (open < 0) return null;
-      const name = (text.slice(0, open).match(/(\w+)\s*$/) || [])[1];
-      let f = API_BY_NAME[name];
-      if (!f) {
-        const u = userNames(model.getValue()).get(name);
-        if (!u || u.kind !== "function") return null;
-        f = { name, params: u.params.map((p) => [p, ""]), doc: "your function" };
-      }
-      const label = `${f.name}(${f.params.map((p) => p[0]).join(", ")})`;
-      return {
-        value: {
-          signatures: [{ label, documentation: f.doc, parameters: f.params.map((p) => ({ label: p[0], documentation: p[1] })) }],
-          activeSignature: 0, activeParameter: Math.min(commas, Math.max(0, f.params.length - 1)),
-        },
-        dispose() {},
-      };
+      return keep(out);
     },
   });
 
@@ -154,13 +152,38 @@ export async function createEditor(el, value) {
     fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
     minimap: { enabled: false }, scrollBeyondLastLine: false, automaticLayout: true,
     glyphMargin: true, lineNumbersMinChars: 2, tabSize: 4, insertSpaces: true, detectIndentation: false,
-    wordBasedSuggestions: "off", quickSuggestions: { other: true, comments: false, strings: false },
-    suggest: { showWords: false, preview: true }, parameterHints: { enabled: true },
+    wordBasedSuggestions: "off", quickSuggestions: { other: true, comments: false, strings: true },
+    suggest: { showWords: false, preview: false, snippetsPreventQuickSuggestions: false },
+    acceptSuggestionOnEnter: "on", tabCompletion: "off", parameterHints: { enabled: false },
+    occurrencesHighlight: "off", selectionHighlight: false,
+    bracketPairColorization: { enabled: false }, matchBrackets: "never", guides: { bracketPairs: false },
     renderLineHighlight: "none", overviewRulerLanes: 0, hideCursorInOverviewRuler: true,
     scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 }, padding: { top: 8, bottom: 8 },
     stickyScroll: { enabled: false }, folding: false, contextmenu: false,
   });
   const model = ed.getModel();
+
+  // ---- grey words: empty brackets show the names of the values they need ----
+  const greyDeco = ed.createDecorationsCollection([]);
+  const greyWords = () => {
+    const d = [];
+    const users = userNames(model.getValue());
+    for (let n = 1; n <= model.getLineCount(); n++) {
+      for (const m of model.getLineContent(n).matchAll(/(\w+)\(\s*\)/g)) {
+        const f = API_BY_NAME[m[1]];
+        const u = users.get(m[1]);
+        const need = f ? f.params.filter((p) => !p[1].startsWith("optional")) : u && u.kind === "function" ? u.params.map((p) => [p, ""]) : [];
+        if (!need.length) continue;
+        const col = m.index + m[0].length; // the ")" column
+        d.push({ range: new monaco.Range(n, col, n, col + 1), options: {
+          before: { content: need.map((p) => p[0]).join(", "), inlineClassName: "argph" },
+          hoverMessage: { value: need.filter((p) => p[1]).map((p) => `\`${p[0]}\`: ${p[1]}`).join("\n\n") } } });
+      }
+    }
+    greyDeco.set(d);
+  };
+  model.onDidChangeContent(greyWords);
+  greyWords();
 
   // ---- breakpoints (stop signs) ----
   const stops = ed.createDecorationsCollection([]);

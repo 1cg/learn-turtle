@@ -20,6 +20,15 @@ def _kid_line():
     return 0
 
 
+def _is_color(v):
+    # In the browser, the worker asks a canvas. Elsewhere (tests, tools), accept all.
+    try:
+        import js
+        return bool(js.isColor(v))
+    except Exception:
+        return True
+
+
 def _color_value(c):
     if isinstance(c, (tuple, list)) and len(c) == 3:
         vals = list(c)
@@ -27,7 +36,10 @@ def _color_value(c):
             vals = [int(v * 255) for v in vals]
         return "rgb(%d,%d,%d)" % tuple(int(v) for v in vals)
     if isinstance(c, str):
-        return c.replace(" ", "").lower()
+        v = c.replace(" ", "").lower()
+        if not _is_color(v):
+            raise ValueError("bad color: %s" % c)
+        return v
     raise TypeError("color must be a name like \"red\" or a hex like \"#ff0000\"")
 
 

@@ -40,13 +40,35 @@ const cases = [
     await wait(800);
     ed.trigger("t", "acceptSelectedSuggestion", {});
     await wait(200);
-    return E.getValue() === "for i in range(4):\n    ";
+    return E.getValue() === "for i in range():\n    ";
   }],
-  ["parameter hint", async () => {
-    E.setValue("forward(5)"); ed.setPosition({ lineNumber: 1, column: 9 }); ed.focus();
-    ed.trigger("t", "editor.action.triggerParameterHints", {});
-    await wait(600);
-    return document.querySelector(".parameter-hints-widget .signature")?.textContent === "forward(distance)";
+  ["accept puts in empty brackets", async () => {
+    E.setValue("forw"); ed.setPosition({ lineNumber: 1, column: 5 }); ed.focus();
+    ed.trigger("t", "editor.action.triggerSuggest", {});
+    await wait(800);
+    ed.trigger("t", "acceptSelectedSuggestion", {});
+    await wait(200);
+    return E.getValue() === "forward()";
+  }],
+  ["no second brackets", async () => {
+    E.setValue("le(90)"); ed.setPosition({ lineNumber: 1, column: 3 }); ed.focus();
+    ed.trigger("t", "editor.action.triggerSuggest", {});
+    await wait(800);
+    ed.trigger("t", "acceptSelectedSuggestion", {});
+    await wait(200);
+    return E.getValue() === "left(90)";
+  }],
+  ["prefix match only", async () => !(await sugg("bob = Turtle()\nbo", 2, 3)).includes("bgcolor")],
+  ["own name suggested", async () => (await sugg("bob = Turtle()\nbo", 2, 3))[0] === "bob"],
+  ["1 letter shows no list", async () => (await sugg("f", 1, 2)).length === 0],
+  ["full name closes the list", async () => (await sugg("penup", 1, 6)).length === 0],
+  ["color list in quotes", async () => (await sugg('color("")', 1, 8))[0] === "red"],
+  ["grey words in empty brackets", async () => {
+    E.setValue("forward()\ngoto()\npenup()\n");
+    ed.setScrollTop(0);
+    await wait(800);
+    const t = [...document.querySelectorAll("#ed .argph")].map((e) => e.textContent.replace(/\u00a0/g, " ")); // Monaco draws spaces as nbsp
+    return t.includes("distance") && t.includes("x, y") && t.length === 2;
   }],
   ["stops follow edits", async () => {
     E.setValue("a = 1\nb = 2\nc = 3\n"); E.setStops([2]);

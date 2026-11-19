@@ -28,6 +28,7 @@ The site runs fully in the browser. The child installs nothing and makes no acco
 ## File Index
 
 - [features/debugger.md](features/debugger.md): step debugger, controls, and the UI decisions behind them
+- [features/editor.md](features/editor.md): completion, grey words for values, color list, quiet editor settings
 - [features/explanations.md](features/explanations.md): the gray `# ...` text for each step
 - [features/lessons.md](features/lessons.md): lesson track and the order of concepts
 - [features/home.md](features/home.md): home page, lesson map, progress buttons, lesson header

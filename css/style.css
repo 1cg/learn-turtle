@@ -198,3 +198,6 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: v
 #cv.waiting { opacity: .55; cursor: progress; }
 @keyframes loadpulse { 50% { opacity: .6; } }
 @media (prefers-reduced-motion: reduce) { #bNext.loading:disabled { animation: none; } }
+
+/* Grey words: the names of the values that empty brackets need. Not code. */
+.argph { color: #9aa1ad; font-style: italic; }
