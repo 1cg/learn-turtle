@@ -1,0 +1,13 @@
+# The site Worker: static assets only. Intent: src/md/infrastructure/hosting.md
+name = "learn-turtle"
+compatibility_date = "2026-11-01"
+
+# learnturtle.org/api/feedback goes to the feedback Worker (feedback/wrangler.toml): the more specific route wins.
+routes = [
+  { pattern = "learnturtle.org/*", zone_name = "learnturtle.org" },
+  { pattern = "www.learnturtle.org/*", zone_name = "learnturtle.org" },
+]
+
+# dist/ is made by deploy/build.sh (Workers Builds build command).
+[assets]
+directory = "./dist"
