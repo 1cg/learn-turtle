@@ -20,7 +20,7 @@ By hand (for example, if Workers Builds is down): `deploy/deploy.sh`. It needs a
 
 - The Worker has the routes `learnturtle.org/*` and `www.learnturtle.org/*`.
 - The feedback Worker has `learnturtle.org/api/feedback` and the same on www. The more specific route wins, so feedback still goes to its own Worker.
-- The DNS records for learnturtle.org and www must be proxied (orange cloud). A route runs before the request goes to the DNS target, so the target is not used. Today they are CNAMEs to `learn-turtle.pages.dev`, left from the old Pages project. A proxied AAAA record to `100::` is the usual target for a Worker-only name.
+- The DNS records for learnturtle.org and www must be proxied (orange cloud). A route runs before the request goes to the DNS target, so the target is not used. Both are proxied AAAA records to `100::`, the usual target for a Worker-only name.
 - The old Pages project `learn-turtle` is deleted. To roll back a bad deploy, use `npx wrangler rollback` in the repo root, or revert the commit and push.
 
 ## Subtleties
