@@ -5,8 +5,8 @@ The engine is `js/lessons.js`. The content is `lessons/lessons.js`.
 ## Goals
 
 - Each lesson teaches one Python concept and shows it with the debugger.
-- A lesson has a short text, a concept picture, starter code, a "watch it run" example, and a task.
-- The task has a target drawing. The site checks the drawing of the child against the target.
+- A lesson has three kinds of steps: Learn (read about the idea and step through example code), Try (change the example) and Do (build on your own code). See "Lesson format".
+- Try and Do steps have a target drawing. The site checks the drawing of the child against the target.
 - Progress and code stay in the browser (localStorage). There are no accounts.
 
 ## Order of concepts

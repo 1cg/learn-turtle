@@ -21,6 +21,6 @@ Push `master` to https://github.com/1cg/learn-turtle. Cloudflare Workers Builds 
 
 Browser Cache TTL must be "Respect Existing Headers": https://dash.cloudflare.com/?to=/:account/learnturtle.org/caching/configuration
 
-## Old Pages project
+## Rollback
 
-The Pages project `learn-turtle` (direct upload) gets no traffic after the Worker routes are live. Keep it until the Worker is proven, then delete it.
+Run `npx wrangler rollback` in the repo root, or revert the bad commit and push.

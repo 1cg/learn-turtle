@@ -20,11 +20,12 @@ By hand (for example, if Workers Builds is down): `deploy/deploy.sh`. It needs a
 
 - The Worker has the routes `learnturtle.org/*` and `www.learnturtle.org/*`.
 - The feedback Worker has `learnturtle.org/api/feedback` and the same on www. The more specific route wins, so feedback still goes to its own Worker.
-- The DNS records stay: proxied CNAMEs to `learn-turtle.pages.dev`. A route runs before the request goes to that target, so the old Pages project gets no traffic. To roll back, remove the two routes.
+- The DNS records for learnturtle.org and www must be proxied (orange cloud). A route runs before the request goes to the DNS target, so the target is not used. Today they are CNAMEs to `learn-turtle.pages.dev`, left from the old Pages project. A proxied AAAA record to `100::` is the usual target for a Worker-only name.
+- The old Pages project `learn-turtle` is deleted. To roll back a bad deploy, use `npx wrangler rollback` in the repo root, or revert the commit and push.
 
 ## Subtleties
 
-- Cloudflare cannot connect a direct-upload Pages project to Git, so card-28 made a new Worker. Cloudflare now says "Start new projects with Workers".
+- Cloudflare cannot connect a direct-upload Pages project to Git, so card-28 made a new Worker and deleted the Pages project. Cloudflare now says "Start new projects with Workers".
 - `_headers` must be at the root of `dist/`. Workers static assets read it there.
 - The browser must check each file again (`max-age=0`), so a new deploy shows at the next load. Check: `curl -sI https://learnturtle.org/js/app.js`.
 - The zone setting Browser Cache TTL must be "Respect Existing Headers". With the default (4 h), the browser keeps old JS with a new `index.html`, and the page breaks (card-15).

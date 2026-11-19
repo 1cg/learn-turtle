@@ -35,4 +35,4 @@ The site runs fully in the browser. The child installs nothing and makes no acco
 - [features/feedback.md](features/feedback.md): Feedback button, the Worker endpoint, checks and storage
 - [api/turtle.md](api/turtle.md): turtle commands, the global versus object rule, and the command record
 - [infrastructure/runtime.md](infrastructure/runtime.md): Pyodide worker, recording format, CDN versions, tests
-- [infrastructure/hosting.md](infrastructure/hosting.md): Cloudflare Pages, the deploy script, the custom domain
+- [infrastructure/hosting.md](infrastructure/hosting.md): Cloudflare Worker with static assets, deploy on push to master (Workers Builds), routes, rollback
